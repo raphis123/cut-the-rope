@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cut the Rope — Documentation | SquareGames</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body>
+
+  <div class="doc-wrap">
+
+    <header class="doc-header">
+      <span class="doc-badge">Official Documentation</span>
+      <h1>Cut the Rope</h1>
+      <p class="doc-meta">
+        Created by <strong>SquareGames</strong> &nbsp;·&nbsp;
+        Release date: <strong>June 11, 2026</strong>
+      </p>
+    </header>
+
+    <nav class="doc-card" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ul class="doc-toc">
+        <li><a href="#thanks">Thank You</a></li>
+        <li><a href="#overview">Product Overview</a></li>
+        <li><a href="#install">Installation</a></li>
+        <li><a href="#how-to-play">How to Play</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#structure">File Structure</a></li>
+        <li><a href="#customization">Customization Guide</a></li>
+        <li><a href="#api">JavaScript API</a></li>
+        <li><a href="#support">Support</a></li>
+      </ul>
+    </nav>
+
+    <section class="doc-card doc-thanks" id="thanks">
+      <div class="doc-heart" aria-hidden="true">🎮</div>
+      <h2>Thank You for Your Purchase!</h2>
+      <p>
+        Thank you for choosing <strong>Cut the Rope</strong> by <strong>SquareGames</strong>.
+        We hope you enjoy this complete HTML5 rope-cutting puzzle game — ready to embed
+        in websites, publish as a web app, or reskin for your own brand.
+      </p>
+      <p>
+        This document explains how to run, play, and customize the product.
+        If you need help, keep this file alongside your project files.
+      </p>
+    </section>
+
+    <section class="doc-card" id="overview">
+      <h2>Product Overview</h2>
+      <p>
+        <strong>Cut the Rope</strong> is a browser-based physics puzzle game inspired by the
+        classic rope-cutting genre. Swipe across ropes to drop the candy into the mouth of
+        <strong>Momo</strong>, collect stars, and complete 100 handcrafted levels across
+        10 themed worlds.
+      </p>
+
+      <div class="doc-features">
+        <div class="doc-feature">
+          <strong>100 Levels</strong>
+          <span>Procedural + hand-tuned stages with increasing difficulty</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Realistic Ropes</strong>
+          <span>Verlet physics with swing, sag, and multi-rope puzzles</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Rich Gameplay</strong>
+          <span>Ice, spikes, bubbles, wind, bounce pads &amp; moving platforms</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Mobile Ready</strong>
+          <span>Touch controls, performance scaling for weak devices</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Full UI</strong>
+          <span>Loading screen, menu, level select, pause, win/lose overlays</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Audio System</strong>
+          <span>Procedural music &amp; SFX via Web Audio API</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Animated Character</strong>
+          <span>Momo — procedural draw with eat, sad &amp; idle animations</span>
+        </div>
+        <div class="doc-feature">
+          <strong>Reskin Ready</strong>
+          <span>Swap sprites, edit levels, restyle CSS without a build step</span>
+        </div>
+      </div>
+
+      <h3>Technology</h3>
+      <ul>
+        <li>Vanilla HTML5, CSS3, and JavaScript — no framework required</li>
+        <li>Canvas 2D renderer with optional image sprite swap</li>
+        <li>Progress saved in <code>localStorage</code></li>
+        <li>Works fully offline — all assets bundled locally (fonts, scripts, styles)</li>
+      </ul>
+    </section>
+
+    <section class="doc-card" id="install">
+      <h2>Installation &amp; Running</h2>
+
+      <h3>Quick Start (Local)</h3>
+      <ol>
+        <li>Unzip the product folder to any location on your computer.</li>
+        <li>Open <code>index.html</code> in a modern browser (Chrome, Firefox, Safari, Edge).</li>
+        <li>Tap <strong>Tap to Start!</strong> on the loading screen, then play from the main menu.</li>
+      </ol>
+
+      <div class="doc-note">
+        For best audio behaviour, interact with the page once (tap/click) so the browser unlocks sound.
+      </div>
+
+      <h3>Offline Play</h3>
+      <p>
+        The entire project is self-contained. No internet connection is required after download.
+        All fonts are stored in <code>fonts/</code> and all scripts/styles load from local files.
+        Open <code>index.html</code> directly or host the folder on any static server.
+      </p>
+
+      <h3>Web Server (Recommended for Production)</h3>
+      <p>Host the entire folder on any static host (Netlify, GitHub Pages, Apache, Nginx, etc.):</p>
+      <div class="doc-code">your-site.com/cut-the-rope/index.html</div>
+      <p>No server-side code or database is required.</p>
+
+      <h3>Mobile / PWA</h3>
+      <p>
+        The game includes mobile viewport meta tags and touch-action settings.
+        Add to home screen on iOS/Android for an app-like experience.
+      </p>
+    </section>
+
+    <section class="doc-card" id="how-to-play">
+      <h2>How to Play</h2>
+
+      <h3>Goal</h3>
+      <p>
+        Cut the rope(s) so the candy falls into <strong>Momo</strong>'s mouth.
+        Collect as many <strong>stars</strong> as possible before the candy reaches Momo.
+      </p>
+
+      <h3>Controls</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Desktop</th>
+              <th>Mobile</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cut rope</td>
+              <td>Click &amp; drag across a rope</td>
+              <td>Swipe finger across a rope</td>
+            </tr>
+            <tr>
+              <td>Pop bubble</td>
+              <td>Tap the bubble around the candy</td>
+              <td>Tap the bubble</td>
+            </tr>
+            <tr>
+              <td>Pause</td>
+              <td>Menu button (☰) in HUD</td>
+              <td>Menu button (☰) in HUD</td>
+            </tr>
+            <tr>
+              <td>Restart level</td>
+              <td>↺ button in HUD</td>
+              <td>↺ button in HUD</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>HUD &amp; Screens</h3>
+      <ul>
+        <li><strong>Level badge</strong> — current level number</li>
+        <li><strong>Stars</strong> — stars collected this attempt (top center)</li>
+        <li><strong>Main Menu</strong> — Continue, Select Level, Settings</li>
+        <li><strong>Level Select</strong> — grid of 100 levels with star progress</li>
+        <li><strong>Win / Lose</strong> — animated overlays with retry and next level options</li>
+      </ul>
+
+      <h3>Obstacle Types</h3>
+      <ul>
+        <li><strong>Wood / Stone</strong> — solid platforms</li>
+        <li><strong>Ice</strong> — slippery surface</li>
+        <li><strong>Spike</strong> — destroys the candy on contact</li>
+        <li><strong>Bounce</strong> — trampoline pad</li>
+        <li><strong>Bubble</strong> — candy floats upward until popped</li>
+        <li><strong>Wind</strong> — pushes the candy horizontally</li>
+      </ul>
+    </section>
+
+    <section class="doc-card" id="settings">
+      <h2>Settings</h2>
+      <p>Access settings from the <strong>Main Menu → Settings</strong> or the in-game pause menu.</p>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Option</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sound Effects</td>
+              <td>Cut, star, win, lose, pop &amp; UI sounds</td>
+            </tr>
+            <tr>
+              <td>Music</td>
+              <td>Procedural background music (menu &amp; gameplay)</td>
+            </tr>
+            <tr>
+              <td>Vibration</td>
+              <td>Haptic feedback on mobile (when supported)</td>
+            </tr>
+            <tr>
+              <td>Visual Effects</td>
+              <td>Extra particles and glow (where applicable)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Settings are stored in <code>localStorage</code> under the key <code>cutrope-settings</code>.</p>
+    </section>
+
+    <section class="doc-card" id="structure">
+      <h2>File Structure</h2>
+      <div class="doc-file-tree">
+cut-the-rope/
+├── index.html              ← Main game entry point
+├── documentation.html      ← This file
+├── fonts/
+│   ├── fredoka-500.ttf     ← Local UI font
+│   ├── fredoka-600.ttf
+│   ├── fredoka-700.ttf
+│   └── luckiest-guy.ttf    ← Local display font
+├── css/
+│   ├── fonts.css           ← @font-face (offline fonts)
+│   ├── game.css            ← HUD, overlays, buttons
+│   ├── screens.css         ← Menu, loading, level select
+│   ├── background.css      ← Screen backgrounds
+│   ├── typography.css      ← Fonts &amp; text colors
+│   └── documentation.css   ← Documentation styles
+├── js/
+│   ├── game.js             ← Game loop, input, public API
+│   ├── physics.js          ← Rope &amp; candy physics
+│   ├── renderer.js         ← Canvas drawing (Momo, candy, etc.)
+│   ├── levels.js           ← 100 level definitions
+│   ├── screens.js          ← Screen flow &amp; navigation
+│   └── settings.js         ← Audio &amp; settings
+└── img/                    ← Place custom sprites here
+      </div>
+    </section>
+
+    <section class="doc-card" id="customization">
+      <h2>Customization Guide</h2>
+      <p>
+        The game is designed to be reskinned without a build pipeline.
+        Below are the most common customization tasks.
+      </p>
+
+      <h3>1. Replace Character &amp; Object Sprites</h3>
+      <p>
+        By default, Momo, candy, and stars are drawn procedurally on canvas.
+        You can replace them with PNG images. Place files in <code>img/</code> and
+        load before starting the game:
+      </p>
+      <div class="doc-code"><span class="cm">// Add before or after game scripts load — call before enterGame()</span>
+<span class="kw">CutRope</span>.<span class="cm">loadSprites</span>({
+  <span class="str">omNom</span>: <span class="str">'img/momo.png'</span>,
+  <span class="str">candy</span>: <span class="str">'img/candy.png'</span>,
+  <span class="str">star</span>:  <span class="str">'img/star.png'</span>
+}).<span class="cm">then</span>(() => {
+  console.<span class="cm">log</span>(<span class="str">'Sprites loaded!'</span>);
+});</div>
+      <div class="doc-note">
+        Sprites are drawn as squares fitting the entity radius. Use transparent PNGs.
+        Recommended size: 256×256 px or larger.
+      </div>
+
+      <h3>2. Edit or Add Levels</h3>
+      <p>Levels live in <code>js/levels.js</code>. Coordinates are normalized <strong>0–1</strong> (relative to canvas size).</p>
+      <div class="doc-code">{
+  <span class="str">id</span>: 1,
+  <span class="str">name</span>: <span class="str">'My Level'</span>,
+  <span class="str">candy</span>:  { <span class="str">x</span>: 0.5, <span class="str">y</span>: 0.28 },
+  <span class="str">omNom</span>:  { <span class="str">x</span>: 0.5, <span class="str">y</span>: 0.88 },
+  <span class="str">anchors</span>: [{ <span class="str">x</span>: 0.5, <span class="str">y</span>: 0.05 }],
+  <span class="str">ropes</span>:   [{ <span class="str">anchorIndex</span>: 0, <span class="str">segments</span>: 14 }],
+  <span class="str">stars</span>:   [{ <span class="str">x</span>: 0.5, <span class="str">y</span>: 0.54 }],
+  <span class="str">obstacles</span>: [
+    { <span class="str">x</span>: 0.5, <span class="str">y</span>: 0.68, <span class="str">w</span>: 0.22, <span class="str">h</span>: 0.04, <span class="str">type</span>: <span class="str">'wood'</span> }
+  ],
+  <span class="str">bubbles</span>: [],
+  <span class="str">winds</span>:   []
+}</div>
+
+      <p><strong>Obstacle types:</strong> <code>wood</code>, <code>stone</code>, <code>ice</code>, <code>spike</code>, <code>bounce</code></p>
+      <p><strong>Multi-rope example:</strong> add multiple anchors and rope entries; use <code>attachToCandy: true</code> to link a rope end to the candy.</p>
+      <p><strong>Per-level overrides:</strong> search for <code>applyLevelFixes</code> in <code>levels.js</code> to patch specific level IDs.</p>
+
+      <h3>3. Change Colors &amp; UI Theme</h3>
+      <ul>
+        <li><code>css/background.css</code> — loading/menu sky and cardboard tones</li>
+        <li><code>css/screens.css</code> — menu card, buttons, level grid, Momo mascot on loading screen</li>
+        <li><code>css/typography.css</code> — font colors and title styles</li>
+        <li><code>css/game.css</code> — HUD, win/lose panels, in-game buttons</li>
+        <li><code>js/renderer.js</code> — in-game canvas colors (Momo palette, candy, obstacles)</li>
+      </ul>
+
+      <h3>4. Rename the Game</h3>
+      <p>Edit the title in <code>index.html</code>:</p>
+      <ul>
+        <li><code>&lt;title&gt;</code> tag</li>
+        <li><code>.loading-title</code> and <code>.menu-title</code> headings</li>
+        <li>Loading subtitle and menu tagline text</li>
+      </ul>
+
+      <h3>5. Change Fonts</h3>
+      <p>
+        Fonts are bundled locally in <code>fonts/</code> and declared in <code>css/fonts.css</code>.
+        To replace them, swap the <code>.ttf</code> files and update the <code>@font-face</code> rules.
+        Fallbacks: <code>Comic Sans MS</code>, <code>cursive</code>, <code>sans-serif</code>.
+      </p>
+
+      <h3>6. Reset Player Progress</h3>
+      <p>Progress is stored in <code>localStorage</code>. To reset during testing, open browser DevTools console and run:</p>
+      <div class="doc-code">localStorage.removeItem(<span class="str">'cutRopeProgress'</span>);
+localStorage.removeItem(<span class="str">'cutrope-settings'</span>);
+location.reload();</div>
+    </section>
+
+    <section class="doc-card" id="api">
+      <h2>JavaScript API</h2>
+      <p>The global <code>CutRope</code> object exposes these methods:</p>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>CutRope.loadSprites(paths)</code></td>
+              <td>Load custom PNG sprites. Returns a Promise.</td>
+            </tr>
+            <tr>
+              <td><code>CutRope.enterGame(index)</code></td>
+              <td>Start level by zero-based index (0 = Level 1).</td>
+            </tr>
+            <tr>
+              <td><code>CutRope.loadLevel(index)</code></td>
+              <td>Alias for <code>enterGame</code>.</td>
+            </tr>
+            <tr>
+              <td><code>CutRope.exitToMenu()</code></td>
+              <td>Return to main menu from gameplay.</td>
+            </tr>
+            <tr>
+              <td><code>CutRope.getProgress()</code></td>
+              <td>Returns <code>{ unlocked, stars }</code> progress object.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Embed Example</h3>
+      <div class="doc-code"><span class="cm">&lt;!-- iframe embed --&gt;</span>
+&lt;iframe
+  src=<span class="str">"cut-the-rope/index.html"</span>
+  width=<span class="str">"420"</span>
+  height=<span class="str">"720"</span>
+  style=<span class="str">"border:none; border-radius:16px;"</span>
+  allow=<span class="str">"autoplay"</span>
+&gt;&lt;/iframe&gt;</div>
+    </section>
+
+    <section class="doc-card" id="support">
+      <h2>Support &amp; License</h2>
+      <p>
+        This product was created by <strong>SquareGames</strong> (June 11, 2026).
+        You may customize and publish it as part of your project according to your
+        purchase license terms.
+      </p>
+      <p>
+        Before publishing, test on both desktop and mobile browsers.
+        Use a local or hosted web server for production deployment.
+      </p>
+      <p>
+        <strong>Quick checklist:</strong>
+      </p>
+      <ul>
+        <li>✅ Replace branding text and logos if reselling under your name</li>
+        <li>✅ Swap sprites via <code>CutRope.loadSprites()</code> for a unique look</li>
+        <li>✅ Tune levels in <code>levels.js</code> for your audience</li>
+        <li>✅ Adjust CSS theme colors to match your site</li>
+        <li>✅ Test touch controls on real mobile devices</li>
+      </ul>
+    </section>
+
+    <footer class="doc-footer">
+      <p>
+        <strong>Cut the Rope</strong> — Documentation v1.0<br>
+        © 2026 <strong>SquareGames</strong>. All rights reserved.<br>
+        Thank you again for your purchase! 🍬
+      </p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

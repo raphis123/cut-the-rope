@@ -1,0 +1,300 @@
+/**
+ * Cartoon display typography — bold fill + ink stroke
+ */
+:root {
+  --font-cartoon: 'Luckiest Guy', 'Fredoka', 'Comic Sans MS', cursive;
+  --font-ui: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
+  --ink: #2d3436;
+  --stroke-sm: 1.5px;
+  --stroke-md: 2px;
+  --stroke-lg: 2.5px;
+  /* Text fill palette — warm nursery tones, no purple */
+  --fill-sky: #0984e3;
+  --fill-teal: #1a936f;
+  --fill-coral: #ff7675;
+  --fill-mango: #fdcb6e;
+  --fill-grass: #00b894;
+  --fill-berry: #d35400;
+  --fill-orange: #e17055;
+  --fill-body: #4a6670;
+  --fill-muted: #c4683a;
+  --fill-warm: #f4a261;
+  --fill-ink-soft: #3d5a6c;
+}
+
+html,
+body {
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+/* ── Display font (cartoon face) ── */
+.cartoon-type,
+h1,
+h2,
+.loading-title,
+.menu-title,
+.lvl-heading h1,
+.panel h1,
+.panel h2,
+.panel-pause h2,
+.panel-confirm h2,
+.levels-heading h1,
+.level-badge,
+.lvl-panel-title,
+.lvl-progress-label,
+.lvl-progress-value,
+.btn-primary,
+.btn-secondary,
+.menu-btn,
+.setting-label,
+.level-btn,
+.lvl-cell-num,
+.lvl-world-tab-num,
+.win-stars {
+  font-family: var(--font-cartoon);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* ── Large titles: yellow fill + dark stroke ── */
+.loading-title,
+.menu-title,
+.lvl-heading h1,
+.panel h1,
+.levels-heading h1 {
+  color: #ffe566;
+  -webkit-text-stroke: var(--stroke-lg) var(--ink);
+  paint-order: stroke fill;
+  text-shadow:
+    3px 3px 0 var(--ink),
+    0 3px 0 rgba(45, 52, 54, 0.2);
+}
+
+.panel h2,
+.panel-pause h2,
+.panel-confirm h2 {
+  color: #fff9c4;
+  -webkit-text-stroke: var(--stroke-md) var(--ink);
+  paint-order: stroke fill;
+  text-shadow:
+    2px 2px 0 var(--ink),
+    0 2px 0 rgba(45, 52, 54, 0.18);
+}
+
+/* ── HUD & badges ── */
+.level-badge {
+  color: #5bc0eb;
+  -webkit-text-stroke: var(--stroke-sm) var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--ink);
+  font-size: 14px;
+}
+
+.lvl-panel-title,
+.lvl-progress-label {
+  color: var(--fill-coral);
+  -webkit-text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.lvl-progress-value {
+  color: #ff9f43;
+  -webkit-text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+/* ── Level grid numbers ── */
+.lvl-cell-num {
+  color: #fff;
+  -webkit-text-stroke: var(--stroke-sm) var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.lvl-cell.completed .lvl-cell-num {
+  color: #fff8e1;
+}
+
+.lvl-cell.current .lvl-cell-num {
+  color: #b8ffb8;
+}
+
+.lvl-cell.locked .lvl-cell-num {
+  color: #dce8ef;
+  -webkit-text-stroke: 1px #5a8a9a;
+  text-shadow: none;
+}
+
+/* ── Buttons ── */
+.btn-primary,
+.menu-btn-primary {
+  color: #fff;
+  -webkit-text-stroke: var(--stroke-sm) #1b4332;
+  paint-order: stroke fill;
+  text-shadow:
+    2px 2px 0 #1b4332,
+    0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary,
+.menu-btn-secondary {
+  color: var(--fill-warm);
+  -webkit-text-stroke: 1.5px #a04000;
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 #a04000;
+}
+
+.btn-danger-outline {
+  color: #fff5f5;
+  -webkit-text-stroke: var(--stroke-sm) #922b21;
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 #922b21;
+}
+
+/* ── Body / subtitles — soft color, no black/gray ── */
+.subtitle,
+.subtitle-sm,
+.menu-tagline,
+.menu-stats,
+.menu-footer,
+.loading-subtitle,
+.loading-status,
+.lvl-heading p,
+.levels-heading p,
+.pause-message,
+.settings-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  letter-spacing: normal;
+  color: var(--fill-body);
+}
+
+.menu-tagline,
+.lvl-heading p,
+.levels-heading p,
+.loading-subtitle {
+  color: var(--fill-teal);
+}
+
+.menu-stats,
+.loading-status,
+.settings-title {
+  color: var(--fill-muted);
+}
+
+.menu-stats strong {
+  color: var(--fill-sky);
+}
+
+.menu-footer {
+  color: rgba(26, 147, 111, 0.72);
+}
+
+.setting-row .setting-label {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  color: var(--fill-grass);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+.setting-label {
+  font-family: var(--font-ui);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+/* ── HUD & misc UI ── */
+.hud {
+  color: var(--fill-orange);
+}
+
+.btn-icon {
+  color: var(--fill-sky);
+}
+
+.lvl-back-icon {
+  color: var(--fill-teal);
+}
+
+.lvl-total-badge,
+.lvl-world-badge {
+  color: var(--fill-sky);
+}
+
+.level-btn {
+  color: var(--fill-sky);
+}
+
+/* ── World tabs (legacy) ── */
+.lvl-world-tab-num {
+  color: #fff;
+  -webkit-text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+/* Override legacy hardcoded grays in screens/game.css */
+.loading-subtitle,
+.loading-status,
+.menu-tagline,
+.menu-stats,
+.menu-footer,
+.lvl-heading p,
+.lvl-progress-label,
+.lvl-world-sub,
+.levels-heading p,
+.subtitle,
+.subtitle-sm,
+.settings-title {
+  color: var(--fill-body);
+}
+
+.loading-subtitle,
+.menu-tagline,
+.lvl-heading p,
+.levels-heading p {
+  color: var(--fill-teal);
+}
+
+.menu-stats,
+.loading-status,
+.settings-title,
+.lvl-progress-label {
+  color: var(--fill-muted);
+}
+
+.menu-footer {
+  color: rgba(26, 147, 111, 0.72);
+}
+
+.lvl-back-icon {
+  color: var(--fill-teal);
+}
+
+.lvl-progress-value,
+.lvl-total-badge,
+.lvl-world-badge {
+  color: var(--fill-warm);
+}
+
+.lvl-cell-num {
+  color: #fff;
+}
+
+.lvl-cell.completed .lvl-cell-num {
+  color: #fff8e1;
+}
+
+.lvl-cell.current .lvl-cell-num {
+  color: #b8ffb8;
+}
+
+.menu-btn-secondary {
+  color: var(--fill-warm);
+}

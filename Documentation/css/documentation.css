@@ -1,0 +1,310 @@
+/* Cut the Rope — Product Documentation (SquareGames) */
+
+:root {
+  --doc-ink: #2d3436;
+  --doc-paper: #fffef5;
+  --doc-warm: #f5ddb0;
+  --doc-gold: #ffd54f;
+  --doc-green: #6bcb77;
+  --doc-coral: #ff7043;
+  --doc-sky: #5bc0eb;
+  --doc-muted: #636e72;
+  --doc-radius: 20px;
+  --doc-shadow: 4px 4px 0 var(--doc-ink);
+  --font-ui: 'Fredoka', 'Segoe UI', sans-serif;
+  --font-display: 'Luckiest Guy', 'Fredoka', cursive;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--doc-ink);
+  background: linear-gradient(165deg, #fae5b8 0%, #e8c078 45%, #b88040 100%);
+  min-height: 100vh;
+  line-height: 1.65;
+}
+
+.doc-wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+
+/* ── Header ── */
+.doc-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.doc-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: var(--doc-gold);
+  border: 3px solid var(--doc-ink);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: var(--doc-shadow);
+  margin-bottom: 18px;
+}
+
+.doc-header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.doc-meta {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--doc-muted);
+}
+
+.doc-meta strong {
+  color: var(--doc-ink);
+}
+
+/* ── Cards ── */
+.doc-card {
+  background: var(--doc-paper);
+  border: 3px solid var(--doc-ink);
+  border-radius: var(--doc-radius);
+  padding: 28px 26px;
+  margin-bottom: 22px;
+  box-shadow: var(--doc-shadow);
+  position: relative;
+}
+
+.doc-card::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: calc(var(--doc-radius) + 4px);
+  background: linear-gradient(135deg, #ff6b6b, var(--doc-gold), var(--doc-green), var(--doc-sky));
+  z-index: -1;
+  opacity: 0.28;
+}
+
+.doc-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed rgba(45, 52, 54, 0.15);
+}
+
+.doc-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 20px 0 8px;
+  color: var(--doc-coral);
+}
+
+.doc-card p {
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.doc-card ul,
+.doc-card ol {
+  margin: 0 0 14px 22px;
+  font-weight: 500;
+}
+
+.doc-card li {
+  margin-bottom: 6px;
+}
+
+.doc-thanks {
+  background: linear-gradient(180deg, #fffef5 0%, #fff9c4 100%);
+  text-align: center;
+}
+
+.doc-thanks p {
+  font-size: 1.05rem;
+}
+
+.doc-thanks .doc-heart {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* ── Feature grid ── */
+.doc-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.doc-feature {
+  background: rgba(255, 213, 79, 0.18);
+  border: 2px solid rgba(45, 52, 54, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.doc-feature strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.doc-feature span {
+  font-size: 13px;
+  color: var(--doc-muted);
+  font-weight: 500;
+}
+
+/* ── Code blocks ── */
+.doc-code {
+  background: #2d3436;
+  color: #dfe6e9;
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.doc-code .cm {
+  color: #81ecec;
+}
+
+.doc-code .str {
+  color: #ffeaa7;
+}
+
+.doc-code .kw {
+  color: #fd79a8;
+}
+
+.doc-note {
+  background: rgba(91, 192, 235, 0.15);
+  border-left: 4px solid var(--doc-sky);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 14px 0;
+}
+
+.doc-file-tree {
+  background: rgba(245, 221, 176, 0.45);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-family: 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+
+/* ── Table ── */
+.doc-table-wrap {
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.doc-table th,
+.doc-table td {
+  border: 2px solid rgba(45, 52, 54, 0.15);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.doc-table th {
+  background: rgba(255, 213, 79, 0.35);
+  font-weight: 700;
+}
+
+.doc-table code {
+  background: rgba(45, 52, 54, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* ── Nav ── */
+.doc-toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.doc-toc a {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #fff;
+  border: 2px solid var(--doc-ink);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--doc-ink);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.doc-toc a:hover {
+  background: var(--doc-gold);
+}
+
+/* ── Footer ── */
+.doc-footer {
+  text-align: center;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 2px dashed rgba(45, 52, 54, 0.2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--doc-muted);
+}
+
+.doc-footer strong {
+  color: var(--doc-ink);
+}
+
+@media (max-width: 560px) {
+  .doc-wrap {
+    padding: 18px 14px 40px;
+  }
+
+  .doc-card {
+    padding: 22px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

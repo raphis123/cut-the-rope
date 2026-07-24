@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Cut the Rope</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/background.css">
+  <link rel="stylesheet" href="css/typography.css">
+</head>
+<body>
+
+  <!-- Loading screen -->
+  <div id="screen-loading" class="screen screen-active">
+    <div class="screen-bg screen-bg-sky">
+      <div class="screen-bg-mesh" aria-hidden="true">
+        <span class="bg-orb bg-orb-a"></span>
+        <span class="bg-orb bg-orb-b"></span>
+      </div>
+      <div class="screen-bg-wave" aria-hidden="true"></div>
+    </div>
+    <div class="screen-content">
+      <div class="loading-logo" aria-hidden="true">
+        <div class="momo-mascot">
+          <span class="momo-ear momo-ear-l"></span>
+          <span class="momo-ear momo-ear-r"></span>
+          <span class="momo-foot momo-foot-l"></span>
+          <span class="momo-foot momo-foot-r"></span>
+          <div class="momo-body">
+            <span class="momo-shine"></span>
+            <span class="momo-tuft"></span>
+            <span class="momo-belly"></span>
+            <span class="momo-cheek momo-cheek-l"></span>
+            <span class="momo-cheek momo-cheek-r"></span>
+            <span class="momo-nose"></span>
+            <span class="momo-eye momo-eye-l"><span class="momo-pupil"></span></span>
+            <span class="momo-eye momo-eye-r"><span class="momo-pupil"></span></span>
+            <span class="momo-mouth"></span>
+          </div>
+        </div>
+      </div>
+      <h1 class="loading-title">Cut the Rope</h1>
+      <p class="loading-subtitle">Get ready to feed Om Nom!</p>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar-track">
+          <div id="loading-bar-fill" class="loading-bar-fill"></div>
+        </div>
+        <p id="loading-status" class="loading-status">Starting up…</p>
+      </div>
+      <button id="btn-loading-start" type="button" class="loading-start-btn" hidden>Tap to Start!</button>
+      <div class="loading-decor" aria-hidden="true">
+        <span class="ui-sticker ui-candy ui-candy-md"></span>
+        <span class="ui-sticker ui-star ui-star-md"></span>
+        <span class="ui-sticker ui-bubble ui-bubble-md"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main menu -->
+  <div id="screen-menu" class="screen">
+    <div class="screen-bg screen-bg-sky">
+      <div class="screen-bg-mesh" aria-hidden="true">
+        <span class="bg-orb bg-orb-a"></span>
+        <span class="bg-orb bg-orb-b"></span>
+      </div>
+      <div class="screen-bg-wave" aria-hidden="true"></div>
+    </div>
+    <div class="screen-content">
+      <div class="menu-card">
+        <div class="menu-icon" aria-hidden="true">
+          <span class="ui-sticker ui-star ui-star-sm menu-icon-star"></span>
+          <span class="ui-sticker ui-candy ui-candy-lg menu-icon-candy"></span>
+          <span class="ui-sticker ui-bubble ui-bubble-sm menu-icon-bubble"></span>
+        </div>
+        <h1 class="menu-title">Cut the Rope</h1>
+        <p class="menu-tagline">100 levels of rope-cutting fun!</p>
+        <button id="btn-menu-play" type="button" class="menu-btn menu-btn-primary">
+          Continue — <span id="menu-continue-label">Level 1</span>
+        </button>
+        <button id="btn-menu-levels" type="button" class="menu-btn menu-btn-secondary">Select Level</button>
+        <button id="btn-menu-settings" type="button" class="menu-btn menu-btn-secondary">Settings</button>
+        <div class="menu-stats">
+          Total stars collected: <strong id="menu-stars-total">0</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Level select -->
+  <div id="screen-levels" class="screen">
+    <div class="screen-bg screen-bg-sky lvl-bg">
+      <div class="screen-bg-mesh" aria-hidden="true">
+        <span class="bg-orb bg-orb-a"></span>
+        <span class="bg-orb bg-orb-b"></span>
+      </div>
+      <div class="screen-bg-wave" aria-hidden="true"></div>
+    </div>
+    <div class="screen-content lvl-content">
+      <header class="lvl-header">
+        <button id="btn-levels-back" type="button" class="lvl-back" aria-label="Back to menu">
+          <span class="lvl-back-icon">←</span>
+        </button>
+        <div class="lvl-heading">
+          <h1>Select Level</h1>
+        </div>
+        <div class="lvl-header-spacer"></div>
+      </header>
+
+      <div class="lvl-progress-card">
+        <div class="lvl-progress-top">
+          <span class="lvl-progress-label">Overall progress</span>
+          <span id="levels-progress-text" class="lvl-progress-value">0 / 100 cleared</span>
+        </div>
+        <div class="lvl-progress-track">
+          <div id="levels-progress-fill" class="lvl-progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="lvl-panel">
+        <div class="lvl-panel-head">
+          <span class="lvl-panel-icon" aria-hidden="true">🍬</span>
+          <p class="lvl-panel-title">All levels <span id="levels-total-badge" class="lvl-total-badge">100</span></p>
+        </div>
+        <div id="levels-screen-grid" class="lvl-grid lvl-grid-all"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings (main menu) -->
+  <div id="screen-settings" class="screen">
+    <div class="screen-bg screen-bg-sky">
+      <div class="screen-bg-mesh" aria-hidden="true">
+        <span class="bg-orb bg-orb-a"></span>
+        <span class="bg-orb bg-orb-b"></span>
+      </div>
+      <div class="screen-bg-wave" aria-hidden="true"></div>
+    </div>
+    <div class="screen-content">
+      <header class="levels-header">
+        <button id="btn-settings-back" type="button" class="levels-back" aria-label="Back to menu">←</button>
+        <div class="levels-heading">
+          <h1>Settings</h1>
+          <p>Customize your game</p>
+        </div>
+        <div class="levels-spacer"></div>
+      </header>
+      <div class="levels-panel settings-panel-full">
+        <div class="settings-list settings-list-menu">
+          <button type="button" class="setting-row" data-setting="sound" role="switch" aria-checked="true">
+            <span class="setting-label">Sound Effects</span>
+            <span class="setting-toggle"><span class="setting-knob"></span></span>
+          </button>
+          <button type="button" class="setting-row" data-setting="music" role="switch" aria-checked="true">
+            <span class="setting-label">Music</span>
+            <span class="setting-toggle"><span class="setting-knob"></span></span>
+          </button>
+          <button type="button" class="setting-row" data-setting="vibration" role="switch" aria-checked="true">
+            <span class="setting-label">Vibration</span>
+            <span class="setting-toggle"><span class="setting-knob"></span></span>
+          </button>
+          <button type="button" class="setting-row" data-setting="particles" role="switch" aria-checked="true">
+            <span class="setting-label">Visual Effects</span>
+            <span class="setting-toggle"><span class="setting-knob"></span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game -->
+  <div id="app" class="screen-hidden">
+    <header class="hud">
+      <div class="hud-left">
+        <span class="level-badge">Level <span id="level-num">1</span></span>
+      </div>
+      <div class="hud-center">
+        <div class="stars-display" id="stars-display"></div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-buttons">
+          <button id="btn-restart" class="btn-icon" aria-label="Restart">↺</button>
+          <button id="btn-menu" class="btn-icon" aria-label="Menu">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="cut-trail"></div>
+    </div>
+
+    <div id="overlay-pause" class="overlay hidden">
+      <div class="panel panel-cartoon panel-pause">
+        <div class="panel-icon">⏸</div>
+        <h2>Paused</h2>
+        <p class="subtitle subtitle-sm pause-message">
+          Do you want to leave this level?<br>
+          Your current attempt will not be saved.
+        </p>
+
+        <div class="settings-block">
+          <h3 class="settings-title">Options</h3>
+          <div class="settings-list">
+            <button type="button" class="setting-row" data-setting="sound" role="switch" aria-checked="true">
+              <span class="setting-label">Sound Effects</span>
+              <span class="setting-toggle"><span class="setting-knob"></span></span>
+            </button>
+            <button type="button" class="setting-row" data-setting="music" role="switch" aria-checked="true">
+              <span class="setting-label">Music</span>
+              <span class="setting-toggle"><span class="setting-knob"></span></span>
+            </button>
+            <button type="button" class="setting-row" data-setting="vibration" role="switch" aria-checked="true">
+              <span class="setting-label">Vibration</span>
+              <span class="setting-toggle"><span class="setting-knob"></span></span>
+            </button>
+            <button type="button" class="setting-row" data-setting="particles" role="switch" aria-checked="true">
+              <span class="setting-label">Visual Effects</span>
+              <span class="setting-toggle"><span class="setting-knob"></span></span>
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-pause-resume" type="button" class="btn-primary">Resume</button>
+        <button id="btn-pause-levels" type="button" class="btn-secondary">Select Level</button>
+        <button id="btn-pause-menu" type="button" class="btn-secondary btn-danger-outline">Main Menu</button>
+      </div>
+    </div>
+
+    <div id="overlay-confirm" class="overlay hidden">
+      <div class="panel panel-small panel-cartoon panel-confirm">
+        <div class="panel-icon">❓</div>
+        <h2 id="confirm-title">Leave level?</h2>
+        <p id="confirm-message" class="subtitle subtitle-sm">Are you sure you want to leave? Your progress on this attempt will be lost.</p>
+        <button id="btn-confirm-yes" type="button" class="btn-primary">Yes, leave</button>
+        <button id="btn-confirm-no" type="button" class="btn-secondary">No, stay</button>
+      </div>
+    </div>
+
+    <div id="overlay-win" class="overlay hidden">
+      <div class="panel panel-small panel-cartoon panel-win">
+        <div class="panel-icon panel-icon-art" aria-hidden="true">
+          <div class="result-badge result-win">
+            <span class="result-glow"></span>
+            <span class="ui-sticker ui-candy ui-candy-lg result-candy"></span>
+            <span class="ui-sticker ui-star ui-star-sm result-star-l"></span>
+            <span class="ui-sticker ui-star ui-star-sm result-star-r"></span>
+            <span class="result-spark s1"></span>
+            <span class="result-spark s2"></span>
+            <span class="result-spark s3"></span>
+          </div>
+        </div>
+        <h2>Yummy!</h2>
+        <p class="subtitle subtitle-sm">Om Nom is happy!</p>
+        <div class="win-stars" id="win-stars"></div>
+        <button id="btn-next" class="btn-primary">Next Level</button>
+        <button id="btn-retry-win" class="btn-secondary">Retry</button>
+        <button id="btn-win-menu" class="btn-secondary">Main Menu</button>
+      </div>
+    </div>
+
+    <div id="overlay-lose" class="overlay hidden">
+      <div class="panel panel-small panel-cartoon panel-lose">
+        <div class="panel-icon panel-icon-art" aria-hidden="true">
+          <div class="result-badge result-lose">
+            <span class="ui-sticker ui-candy ui-candy-md result-candy-cracked"></span>
+            <span class="result-crack"></span>
+            <span class="result-tear tl"></span>
+            <span class="result-tear tr"></span>
+            <span class="result-sigh">…</span>
+          </div>
+        </div>
+        <h2>Oops!</h2>
+        <p class="subtitle subtitle-sm">The candy didn't reach Om Nom…</p>
+        <button id="btn-retry-lose" class="btn-primary">Try Again</button>
+        <button id="btn-lose-menu" class="btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/levels.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/screens.js"></script>
+</body>
+</html>
