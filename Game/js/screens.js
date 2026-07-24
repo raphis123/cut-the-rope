@@ -276,10 +276,9 @@
 
   document.getElementById('btn-menu-play').addEventListener('click', async () => {
     await unlockAudioFromGesture();
-    const progress = getProgress();
-    const idx = Math.max(0, Math.min(progress.unlocked - 1, LEVELS.length - 1));
     sfx('levelPick');
-    startGame(idx);
+    // 새 게임은 항상 첫 번째 레벨(인덱스 0 = Level 1)부터 시작
+    startGame(0);
   });
 
   document.getElementById('btn-menu-levels').addEventListener('click', async () => {
