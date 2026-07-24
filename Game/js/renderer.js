@@ -13,11 +13,21 @@ const Renderer = (() => {
   const assets = {
     omNom: null,
     candy: null,
-    star: null
+    star: null,
+    starFx: Array(12).fill(null)
   };
 
   const OUTLINE = '#2d3436';
   const OUTLINE_W = 2.5;
+
+  // ✨ 별 획득 이펙트 설정
+  const STAR_FX_FRAME_COUNT = 12;
+  const STAR_FX_FPS = 18.72;
+  const STAR_FX_DURATION = STAR_FX_FRAME_COUNT / STAR_FX_FPS;
+  const STAR_FX_REFERENCE_SIZE = 1.0;
+  const STAR_FX_SCALE = 5.5;
+  const STAR_FX_OFFSET_X = 0;
+  const STAR_FX_OFFSET_Y = 2;
 
   function isTouchDevice() {
     return GamePerf.isTouch;
@@ -52,6 +62,18 @@ const Renderer = (() => {
   function init(canvas) {
     ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     dpr = getDpr();
+    
+    // 별 이펙트 이미지 미리 로드
+    for (let i = 1; i <= 12; i++) {
+      const idx = i < 10 ? '0' + i : i;
+      const img = new Image();
+      img.src = `img/star_fx_${idx}.png`;
+      img.onerror = function() {
+        console.warn(`Failed to load star effect image: star_fx_${idx}.png`);
+      };
+      assets.starFx[i - 1] = img;
+    }
+    
     return ctx;
   }
 
@@ -68,7 +90,17 @@ const Renderer = (() => {
   }
 
   function setAsset(name, img) {
-    if (assets.hasOwnProperty(name)) assets[name] = img;
+    if (assets.hasOwnProperty(name)) {
+      assets[name] = img;
+      return;
+    }
+    const fxMatch = name.match(/^starFx_(\d+)$/);
+    if (fxMatch) {
+      const frameNum = parseInt(fxMatch[1], 10);
+      if (frameNum >= 1 && frameNum <= 12) {
+        assets.starFx[frameNum - 1] = img;
+      }
+    }
   }
 
   function strokePath(color, lineWidth) {
@@ -1098,6 +1130,104 @@ const Renderer = (() => {
     ctx.restore();
   }
 
+  function drawStarEffect(star, worldTime) {
+    // Lazy load star effect images on first call
+    if (!starFxLoadingStarted) {
+      starFxLoadingStarted = true;
+      for (let i = 1; i <= 12; i++) {
+        const idx = i < 10 ? '0' + i : i;
+        const img = new Image();
+        img.src = `img/star_fx/star_fx_${idx}.png`;
+        img.onerror = function() {
+          console.warn(`Failed to load star effect image: star_fx_${idx}.png`);
+        };
+        assets.starFx[i - 1] = img;
+      }
+    }
+
+    if (!star.fxActive) return;
+    
+    const elapsed = worldTime - star.fxStartTime;
+    if (elapsed < 0) return;
+    
+    const frameIndex = Math.floor(elapsed * STAR_FX_FPS);
+    if (frameIndex >= STAR_FX_FRAME_COUNT) return;
+    
+    const img = assets.starFx[frameIndex];
+    if (!img || !img.complete || !img.naturalWidth || !img.naturalHeight) return;
+    
+    const aspectRatio = img.naturalWidth / img.naturalHeight;
+    const referenceSize = star.radius * 2 * STAR_FX_REFERENCE_SIZE * STAR_FX_SCALE;
+    const displayWidth = referenceSize * aspectRatio;
+    const displayHeight = referenceSize;
+    
+    ctx.save();
+    ctx.translate(
+      star.x + STAR_FX_OFFSET_X,
+      star.y + STAR_FX_OFFSET_Y
+    );
+    
+    ctx.drawImage(
+      img,
+      -displayWidth / 2,
+      -displayHeight / 2,
+      displayWidth,
+      displayHeight
+    );
+    
+    ctx.restore();
+  }
+
+  function drawEffects(world) {
+    // 안전장치: world.effects가 배열인지, 비어있지 않은지 확인
+    if (!Array.isArray(world.effects) || world.effects.length === 0) return;
+    
+    for (let i = world.effects.length - 1; i >= 0; i--) {
+      const effect = world.effects[i];
+      
+      if (effect.type !== 'star') continue;
+      
+      const elapsed = world.time - effect.startTime;
+      
+      // elapsed < 0: 이전 레벨 데이터 또는 시간 동기화 오류
+      // 이 경우 배열에서 즉시 제거
+      if (elapsed < 0) {
+        world.effects.splice(i, 1);
+        continue;
+      }
+      
+      const frameIndex = Math.floor(elapsed * STAR_FX_FPS);
+      if (frameIndex >= STAR_FX_FRAME_COUNT) {
+        world.effects.splice(i, 1);
+        continue;
+      }
+      
+      const img = assets.starFx[frameIndex];
+      if (!img || !img.complete || !img.naturalWidth || !img.naturalHeight) continue;
+      
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      const referenceSize = effect.radius * 2 * STAR_FX_REFERENCE_SIZE * STAR_FX_SCALE;
+      const displayWidth = referenceSize * aspectRatio * 1.3;
+      const displayHeight = referenceSize * 1.3;
+      
+      ctx.save();
+      ctx.translate(
+        effect.x + STAR_FX_OFFSET_X,
+        effect.y + STAR_FX_OFFSET_Y
+      );
+      
+      ctx.drawImage(
+        img,
+        -displayWidth / 2,
+        -displayHeight / 2,
+        displayWidth,
+        displayHeight
+      );
+      
+      ctx.restore();
+    }
+  }
+
   function drawStarShape(c, cx, cy, spikes, outerR, innerR, fill, stroke) {
     let rot = Math.PI / 2 * 3;
     const step = Math.PI / spikes;
@@ -1652,7 +1782,13 @@ const Renderer = (() => {
     (world.winds || []).forEach(w => drawWindZone(w, world.time || 0));
     world.obstacles.forEach(drawObstacle);
     world.bubbles.forEach(b => drawBubbleZone(b, world.time || 0));
-    world.stars.forEach(s => drawStar(s, world.time || 0));
+    
+    // 별 획득 이펙트 렌더링 (별보다 뒤에)
+    drawEffects(world);
+    
+    world.stars.forEach(s => {
+      drawStar(s, world.time || 0);
+    });
     world.ropes.forEach(drawRope);
     drawCandy(world.candy, world.time || 0);
     drawOmNom(world.omNom, world.candy, world.time || 0);

@@ -122,6 +122,8 @@
     Renderer.resize(canvas, w, h);
 
     world = Physics.createWorld(LEVELS[index], w, h);
+    // 이전 레벨 이펙트 완전 제거
+    world.effects = [];
     cutPoints = [];
     collectedThisLevel = 0;
     winCelebrating = false;
@@ -496,6 +498,17 @@
       if (paths.omNom) tasks.push(load('omNom', paths.omNom));
       if (paths.candy) tasks.push(load('candy', paths.candy));
       if (paths.star) tasks.push(load('star', paths.star));
+      
+      // ✨ 별 획득 이펙트 이미지 로드
+      if (paths.starFx && typeof paths.starFx === 'object') {
+        for (let i = 1; i <= 12; i++) {
+          const key = `starFx_${i}`;
+          if (paths.starFx[key]) {
+            tasks.push(load(key, paths.starFx[key]));
+          }
+        }
+      }
+      
       return Promise.all(tasks);
     },
     loadLevel(index) {

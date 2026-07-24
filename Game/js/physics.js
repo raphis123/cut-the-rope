@@ -87,6 +87,26 @@ const Physics = (() => {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  /**
+   * 각 별의 초기 접촉 상태를 기록합니다.
+   * - wasCandyTouching: 레벨 시작 시 사탕과 겹쳐 있는가
+   * - allowCollectEffect: 이펙트 발생을 허용할 것인가
+   */
+  function initializeStarCollisionState(world) {
+    if (!world || !world.stars || !world.candy) return;
+    
+    for (const star of world.stars) {
+      // 시작 시 사탕과 별의 충돌 거리 계산
+      const distance = dist(world.candy.x, world.candy.y, star.x, star.y);
+      const collisionThreshold = world.candy.radius + star.radius;
+      const isTouching = distance < collisionThreshold;
+      
+      // 상태 설정
+      star.wasCandyTouching = isTouching;
+      star.allowCollectEffect = !isTouching; // 시작할 때 안 겹쳐있어야 수집 허용
+    }
+  }
+
   function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
     const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
     if (Math.abs(denom) < 1e-10) return null;
@@ -540,6 +560,9 @@ const Physics = (() => {
     const anchors = level.anchors.map((a) => ({ x: a.x * w, y: a.y * h }));
     const ropes = [];
     let ropeId = 0;
+    
+    // 별 획득 이펙트 상태를 위한 새 배열
+    const effects = [];
 
     level.ropes.forEach((ropeDef) => {
       const anchor = anchors[ropeDef.anchorIndex];
@@ -606,9 +629,15 @@ const Physics = (() => {
       new Star(s.x * w, s.y * h, 0.032 * minDim)
     );
     world.time = 0;
+    world.effects = effects;
+    world.justStartedLevel = true;
 
     settleRopes(world, GamePerf.settleSteps());
     applyInitialPendulumsSwing(world, level);
+    
+    // 레벨 초기화 완료 후 각 별의 초기 상태 기록
+    initializeStarCollisionState(world);
+    
     return world;
   }
 
@@ -974,8 +1003,23 @@ const Physics = (() => {
       star.update(dt);
       if (!star.collected && dist(candy.x, candy.y, star.x, star.y) < candy.radius + star.radius) {
         star.collected = true;
+        // 레벨 시작 직후 첫 프레임에는 이펙트 생성 안 함
+        if (!world.justStartedLevel) {
+          world.effects.push({
+            type: 'star',
+            x: star.x,
+            y: star.y,
+            radius: star.radius,
+            startTime: world.time
+          });
+        }
       }
     });
+    
+    // 별 루프 후에 플래그 변경 (다음 프레임부터 이펙트 허용)
+    if (world.justStartedLevel) {
+      world.justStartedLevel = false;
+    }
 
     bubbles.forEach((bubble) => {
       if (bubble.popped) return;
