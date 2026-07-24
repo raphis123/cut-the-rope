@@ -122,6 +122,8 @@
     Renderer.resize(canvas, w, h);
 
     world = Physics.createWorld(LEVELS[index], w, h);
+    // 🎭 현재 레벨 인덱스를 world에 저장 (렌더러에서 캐릭터 선택 시 사용)
+    world.levelIndex = index;
     // 이전 레벨 이펙트 완전 제거
     world.effects = [];
     cutPoints = [];

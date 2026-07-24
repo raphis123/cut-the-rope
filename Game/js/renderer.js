@@ -14,7 +14,24 @@ const Renderer = (() => {
     omNom: null,
     candy: null,
     star: null,
-    starFx: Array(12).fill(null)
+    starFx: Array(12).fill(null),
+    characters: {
+      character01: {
+        idle: [],
+        eat: [],
+        eat_no: []
+      },
+      character02: {
+        idle: [],
+        eat: [],
+        eat_no: []
+      },
+      character03: {
+        idle: [],
+        eat: [],
+        eat_no: []
+      }
+    }
   };
 
   const OUTLINE = '#2d3436';
@@ -28,6 +45,72 @@ const Renderer = (() => {
   const STAR_FX_SCALE = 5.5;
   const STAR_FX_OFFSET_X = 0;
   const STAR_FX_OFFSET_Y = 2;
+
+  // 🎭 캐릭터 애니메이션 설정
+  const CHARACTER_ANIM_CONFIG = {
+    idle: {
+      fps: 4,
+      loop: true
+    },
+    eat: {
+      duration: 1.2,
+      loop: false
+    },
+    eat_no: {
+      duration: 0.5,
+      loop: true  // 반복 재생
+    }
+  };
+  const CHARACTER_SCALE = 2.2;  // 2 * 1.1 = 2.2배 확대 (1.1배 증가)
+  const CHARACTER_OFFSET_X = 0;
+  const CHARACTER_OFFSET_Y = 0;
+  
+  // 애니메이션 속도 설정 (1.5배, 1.5배, 5배 - eat만 2배 더 빠르게)
+  const IDLE_FPS = CHARACTER_ANIM_CONFIG.idle.fps * 1.5;  // 4 * 1.5 = 6
+  const EAT_NO_FPS = 6 * 1.5;  // 6 * 1.5 = 9
+  const EAT_SPEED_MULTIPLIER = 5.0;  // 2.5 * 2 = 5.0 (현재 속도에서 2배 더 빠름)
+  const EAT_DURATION = CHARACTER_ANIM_CONFIG.eat.duration / EAT_SPEED_MULTIPLIER;  // 1.2 / 5.0 = 0.24
+
+  function getCharacterAnimationState(omNom) {
+    // eat 애니메이션이 아직 재생 중인지 확인
+    if (omNom.eating && omNom.eatTime < EAT_DURATION) {
+      return 'eat';
+    }
+    // 실패 상태면 eat_no 반복
+    if (omNom.sad) {
+      return 'eat_no';
+    }
+    // 그 외는 idle 반복
+    return 'idle';
+  }
+
+  function getCharacterKeyForLevel(levelIndex) {
+    // levelIndex는 0부터 시작하므로 display level = levelIndex + 1
+    const levelNumber = levelIndex + 1;
+    
+    if (levelNumber <= 10) {
+      return 'character01';
+    }
+    if (levelNumber <= 20) {
+      return 'character02';
+    }
+    return 'character03';
+  }
+
+  function getCharacterFrameIndex(state, omNom, time) {
+    if (state === 'idle') {
+      return Math.floor(time * IDLE_FPS) % 3;
+    }
+    if (state === 'eat') {
+      const progress = Math.max(0, Math.min(1, omNom.eatTime / EAT_DURATION));
+      return Math.min(4, Math.floor(progress * 5));
+    }
+    if (state === 'eat_no') {
+      // eat_no는 EAT_NO_FPS로 반복 재생
+      return Math.floor(omNom.sadTime * EAT_NO_FPS) % 3;
+    }
+    return 0;
+  }
 
   function isTouchDevice() {
     return GamePerf.isTouch;
@@ -73,6 +156,44 @@ const Renderer = (() => {
       };
       assets.starFx[i - 1] = img;
     }
+    
+    // 🎭 캐릭터 애니메이션 이미지 미리 로드 (3개 캐릭터 × 3 상태 × (3 + 5 + 3) 프레임)
+    const characterNames = ['character01', 'character02', 'character03'];
+    
+    characterNames.forEach(charName => {
+      // idle: 3프레임
+      for (let i = 1; i <= 3; i++) {
+        const idx = i < 10 ? '0' + i : i;
+        const img = new Image();
+        img.src = `img/character/${charName}/idle/idle${idx}.png`;
+        img.onerror = function() {
+          console.error(`Failed to load character image: ${charName}/idle/idle${idx}.png`);
+        };
+        assets.characters[charName].idle[i - 1] = img;
+      }
+      
+      // eat: 5프레임
+      for (let i = 1; i <= 5; i++) {
+        const idx = i < 10 ? '0' + i : i;
+        const img = new Image();
+        img.src = `img/character/${charName}/eat/eat${idx}.png`;
+        img.onerror = function() {
+          console.error(`Failed to load character image: ${charName}/eat/eat${idx}.png`);
+        };
+        assets.characters[charName].eat[i - 1] = img;
+      }
+      
+      // eat_no: 3프레임
+      for (let i = 1; i <= 3; i++) {
+        const idx = i < 10 ? '0' + i : i;
+        const img = new Image();
+        img.src = `img/character/${charName}/eat_no/eat_no${idx}.png`;
+        img.onerror = function() {
+          console.error(`Failed to load character image: ${charName}/eat_no/eat_no${idx}.png`);
+        };
+        assets.characters[charName].eat_no[i - 1] = img;
+      }
+    });
     
     return ctx;
   }
@@ -965,6 +1086,9 @@ const Renderer = (() => {
   }
 
   function drawCandy(candy, time) {
+    // 🍬 사탕 먹기 성공 시 즉시 화면에서 숨김
+    if (candy.collected) return;
+
     if (candy.loseAnim && candy.shatter && (candy.shatterT || 0) > 0.06) {
       drawCandyShatter(candy);
       if ((candy.loseAlpha || 0) <= 0.05) return;
@@ -1302,7 +1426,7 @@ const Renderer = (() => {
     ctx.fill();
   }
 
-  function drawOmNom(omNom, candy, time) {
+  function drawOmNom(omNom, candy, time, world) {
     const r = omNom.radius;
     const open = omNom.mouthOpen || 0;
     const faceDir = omNom.faceDir || 1;
@@ -1321,6 +1445,42 @@ const Renderer = (() => {
     const slouch = omNom.slouch || 0;
     const sadAmt = omNom.sadAmount || 0;
 
+    // 🎭 현재 레벨에 맞는 캐릭터 선택
+    const characterKey = world && world.levelIndex !== undefined 
+      ? getCharacterKeyForLevel(world.levelIndex)
+      : 'character01';  // 폴백
+    
+    // 🎭 캐릭터 PNG 애니메이션 렌더링
+    const animState = getCharacterAnimationState(omNom);
+    const characterSet = assets.characters[characterKey];
+    const frames = characterSet ? characterSet[animState] : null;
+    
+    if (frames && frames.length > 0) {
+      const frameIdx = getCharacterFrameIndex(animState, omNom, t);
+      const img = frames[frameIdx];
+      
+      // 폴백: 현재 캐릭터의 이미지가 없으면 character01로 시도
+      let fallbackImg = null;
+      if (!img || !img.complete || !img.naturalWidth) {
+        if (characterKey !== 'character01') {
+          const fallbackSet = assets.characters['character01'];
+          if (fallbackSet && fallbackSet[animState] && fallbackSet[animState][frameIdx]) {
+            fallbackImg = fallbackSet[animState][frameIdx];
+          }
+        }
+      }
+      
+      const displayImg = (img && img.complete && img.naturalWidth > 0) ? img : fallbackImg;
+      if (displayImg && displayImg.complete && displayImg.naturalWidth > 0) {
+        const drawWidth = r * 2 * CHARACTER_SCALE;
+        const drawHeight = r * 2 * CHARACTER_SCALE;
+        const drawX = omNom.x - drawWidth / 2 + CHARACTER_OFFSET_X;
+        const drawY = omNom.y - drawHeight / 2 + CHARACTER_OFFSET_Y;
+        ctx.drawImage(displayImg, drawX, drawY, drawWidth, drawHeight);
+        return;
+      }
+    }
+
     if (assets.omNom) {
       ctx.drawImage(assets.omNom, omNom.x - r, omNom.y - r, r * 2, r * 2);
       return;
@@ -1333,6 +1493,7 @@ const Renderer = (() => {
     const stretch = 1 - excited * 0.028 - (eating ? cheekSquish * 0.45 : 0) - slouch * 0.07;
     const earDroop = sad ? slouch * 0.35 : 0;
 
+    // 벡터 그래픽 폴백 (캐릭터 PNG 없을 때)
     ctx.save();
     ctx.translate(omNom.x + sadSway, omNom.y + idleBob + chewBounce + slouch * r * 0.1);
 
@@ -1789,9 +1950,15 @@ const Renderer = (() => {
     world.stars.forEach(s => {
       drawStar(s, world.time || 0);
     });
+    
+    // 🎭 캐릭터 (줄과 사탕보다 먼저 그리기)
+    drawOmNom(world.omNom, world.candy, world.time || 0, world);
+    
+    // 🧵 줄 (캐릭터 위에)
     world.ropes.forEach(drawRope);
+    
+    // 🍬 사탕 (캐릭터와 줄보다 위에, 먹힌 사탕은 그리지 않음)
     drawCandy(world.candy, world.time || 0);
-    drawOmNom(world.omNom, world.candy, world.time || 0);
 
     if (cutPoints && cutPoints.length > 1) {
       drawCutLine(cutPoints, 0.85);
