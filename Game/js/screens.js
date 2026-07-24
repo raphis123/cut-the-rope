@@ -21,7 +21,6 @@
   const loadingFill = document.getElementById('loading-bar-fill');
   const loadingStatus = document.getElementById('loading-status');
   const btnLoadingStart = document.getElementById('btn-loading-start');
-  const menuContinueLabel = document.getElementById('menu-continue-label');
   const menuStarsTotal = document.getElementById('menu-stars-total');
   const levelsProgressFill = document.getElementById('levels-progress-fill');
   const levelsProgressText = document.getElementById('levels-progress-text');
@@ -72,8 +71,6 @@
 
   function updateMenuStats() {
     const progress = getProgress();
-    const continueLevel = Math.max(1, Math.min(progress.unlocked, LEVELS.length));
-    menuContinueLabel.textContent = 'Level ' + continueLevel;
     menuStarsTotal.textContent = String(totalStarsCollected(progress));
   }
 
