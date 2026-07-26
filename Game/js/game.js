@@ -486,7 +486,7 @@
 
   /**
    * Public API for loading custom sprites later.
-   * Usage: CutRope.loadSprites({ omNom: 'img/omnom.png', candy: '...', star: '...' })
+  * Usage: CutRope.loadSprites({ omNom: 'img/characters/character01/idle/idle01.png', candy: '...', star: 'img/props/star.png' })
    */
   window.CutRope = {
     loadSprites(paths) {

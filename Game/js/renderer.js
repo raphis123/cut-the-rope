@@ -150,9 +150,9 @@ const Renderer = (() => {
     for (let i = 1; i <= 12; i++) {
       const idx = i < 10 ? '0' + i : i;
       const img = new Image();
-      img.src = `img/star_fx_${idx}.png`;
+      img.src = `img/effects/star_fx_${idx}.png`;
       img.onerror = function() {
-        console.warn(`Failed to load star effect image: star_fx_${idx}.png`);
+        console.warn(`Failed to load star effect image: effects/star_fx_${idx}.png`);
       };
       assets.starFx[i - 1] = img;
     }
@@ -165,9 +165,9 @@ const Renderer = (() => {
       for (let i = 1; i <= 3; i++) {
         const idx = i < 10 ? '0' + i : i;
         const img = new Image();
-        img.src = `img/character/${charName}/idle/idle${idx}.png`;
+        img.src = `img/characters/${charName}/idle/idle${idx}.png`;
         img.onerror = function() {
-          console.error(`Failed to load character image: ${charName}/idle/idle${idx}.png`);
+          console.error(`Failed to load character image: characters/${charName}/idle/idle${idx}.png`);
         };
         assets.characters[charName].idle[i - 1] = img;
       }
@@ -176,9 +176,9 @@ const Renderer = (() => {
       for (let i = 1; i <= 5; i++) {
         const idx = i < 10 ? '0' + i : i;
         const img = new Image();
-        img.src = `img/character/${charName}/eat/eat${idx}.png`;
+        img.src = `img/characters/${charName}/eat/eat${idx}.png`;
         img.onerror = function() {
-          console.error(`Failed to load character image: ${charName}/eat/eat${idx}.png`);
+          console.error(`Failed to load character image: characters/${charName}/eat/eat${idx}.png`);
         };
         assets.characters[charName].eat[i - 1] = img;
       }
@@ -187,9 +187,9 @@ const Renderer = (() => {
       for (let i = 1; i <= 3; i++) {
         const idx = i < 10 ? '0' + i : i;
         const img = new Image();
-        img.src = `img/character/${charName}/eat_no/eat_no${idx}.png`;
+        img.src = `img/characters/${charName}/eat_no/eat_no${idx}.png`;
         img.onerror = function() {
-          console.error(`Failed to load character image: ${charName}/eat_no/eat_no${idx}.png`);
+          console.error(`Failed to load character image: characters/${charName}/eat_no/eat_no${idx}.png`);
         };
         assets.characters[charName].eat_no[i - 1] = img;
       }
@@ -1183,7 +1183,7 @@ const Renderer = (() => {
   function drawStar(star, time) {
     if (!window.myStar) {
         window.myStar = new Image();
-        window.myStar.src = "img/star.png";
+        window.myStar.src = "img/props/star.png";
         assets.star = window.myStar;
     }
     
@@ -1257,9 +1257,9 @@ const Renderer = (() => {
       for (let i = 1; i <= 12; i++) {
         const idx = i < 10 ? '0' + i : i;
         const img = new Image();
-        img.src = `img/star_fx/star_fx_${idx}.png`;
+        img.src = `img/effects/star_fx_${idx}.png`;
         img.onerror = function() {
-          console.warn(`Failed to load star effect image: star_fx_${idx}.png`);
+          console.warn(`Failed to load star effect image: effects/star_fx_${idx}.png`);
         };
         assets.starFx[i - 1] = img;
       }
