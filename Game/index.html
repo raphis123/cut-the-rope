@@ -16,46 +16,42 @@
 
   <!-- Loading screen -->
   <div id="screen-loading" class="screen screen-active">
-    <div class="screen-bg screen-bg-sky">
-      <div class="screen-bg-mesh" aria-hidden="true">
-        <span class="bg-orb bg-orb-a"></span>
-        <span class="bg-orb bg-orb-b"></span>
-      </div>
-      <div class="screen-bg-wave" aria-hidden="true"></div>
-    </div>
-    <div class="screen-content">
-      <div class="loading-logo" aria-hidden="true">
-        <div class="momo-mascot">
-          <span class="momo-ear momo-ear-l"></span>
-          <span class="momo-ear momo-ear-r"></span>
-          <span class="momo-foot momo-foot-l"></span>
-          <span class="momo-foot momo-foot-r"></span>
-          <div class="momo-body">
-            <span class="momo-shine"></span>
-            <span class="momo-tuft"></span>
-            <span class="momo-belly"></span>
-            <span class="momo-cheek momo-cheek-l"></span>
-            <span class="momo-cheek momo-cheek-r"></span>
-            <span class="momo-nose"></span>
-            <span class="momo-eye momo-eye-l"><span class="momo-pupil"></span></span>
-            <span class="momo-eye momo-eye-r"><span class="momo-pupil"></span></span>
-            <span class="momo-mouth"></span>
+    <div class="loading-scene">
+      <div id="loading-stage" class="loading-stage">
+        <img id="loading-logo" class="loading-logo-image" data-src="img/ui/common/main_logo01.webp" alt="Cut the Rope">
+
+        <div class="loading-character-row" aria-hidden="true">
+          <div class="loading-character loading-character-left">
+            <img id="loading-character-1" class="loading-character-image" data-src="img/characters/character03/idle/idle01.png" alt="">
+          </div>
+          <div class="loading-character loading-character-center">
+            <img id="loading-character-2" class="loading-character-image" data-src="img/characters/character01/idle/idle01.png" alt="">
+          </div>
+          <div class="loading-character loading-character-right">
+            <img id="loading-character-3" class="loading-character-image" data-src="img/characters/character02/idle/idle01.png" alt="">
           </div>
         </div>
-      </div>
-      <h1 class="loading-title">Cut the Rope</h1>
-      <p class="loading-subtitle">Get ready to feed Om Nom!</p>
-      <div class="loading-bar-wrap">
-        <div class="loading-bar-track">
-          <div id="loading-bar-fill" class="loading-bar-fill"></div>
+
+        <div class="loading-progress" aria-label="Loading progress">
+          <div class="loading-bar-track">
+            <div id="loading-bar-fill" class="loading-bar-fill"></div>
+          </div>
+          <p id="loading-status" class="loading-status" hidden></p>
         </div>
-        <p id="loading-status" class="loading-status">Starting up…</p>
-      </div>
-      <button id="btn-loading-start" type="button" class="loading-start-btn" hidden>Tap to Start!</button>
-      <div class="loading-decor" aria-hidden="true">
-        <span class="ui-sticker ui-candy ui-candy-md"></span>
-        <span class="ui-sticker ui-star ui-star-md"></span>
-        <span class="ui-sticker ui-bubble ui-bubble-md"></span>
+
+        <button id="btn-loading-start" type="button" class="loading-start-btn" hidden>TAP TO START!</button>
+
+        <div class="loading-bottom-row" aria-hidden="true">
+          <div class="loading-bottom-item loading-bottom-candy">
+            <img id="loading-candy" data-src="img/ui/common/loading_low_candy01.webp" alt="">
+          </div>
+          <div class="loading-bottom-item loading-bottom-star">
+            <img id="loading-star" data-src="img/ui/common/loading_low_star01.webp" alt="">
+          </div>
+          <div class="loading-bottom-item loading-bottom-bubble">
+            <img id="loading-bubble" data-src="img/ui/common/loading_low_bubble01.webp" alt="">
+          </div>
+        </div>
       </div>
     </div>
   </div>

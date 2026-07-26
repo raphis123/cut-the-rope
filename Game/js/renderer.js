@@ -1,6 +1,78 @@
 /**
  * Cartoon-style canvas renderer (ready for sprite swap).
  */
+window.GameAssetLoader = window.GameAssetLoader || (() => {
+  const entries = new Map();
+  const listeners = new Set();
+  let total = 0;
+  let loaded = 0;
+  let errored = 0;
+
+  function getState() {
+    return {
+      total,
+      loaded,
+      errored,
+      pending: Math.max(0, total - loaded - errored),
+      progress: total ? loaded / total : 0,
+      ready: total > 0 && (loaded + errored) >= total
+    };
+  }
+
+  function emit() {
+    const state = getState();
+    listeners.forEach((listener) => listener(state));
+  }
+
+  function loadImage(src) {
+    const existing = entries.get(src);
+    if (existing) return existing.promise;
+
+    total += 1;
+    const img = new Image();
+    const promise = new Promise((resolve) => {
+      img.onload = () => {
+        loaded += 1;
+        emit();
+        resolve(img);
+      };
+      img.onerror = () => {
+        errored += 1;
+        emit();
+        resolve(null);
+      };
+    });
+
+    entries.set(src, { img, promise });
+    img.src = src;
+    emit();
+    return promise;
+  }
+
+  function getImage(src) {
+    const entry = entries.get(src);
+    return entry ? entry.img : null;
+  }
+
+  function onProgress(callback) {
+    listeners.add(callback);
+    callback(getState());
+    return () => listeners.delete(callback);
+  }
+
+  function loadMany(srcs) {
+    return Promise.all(srcs.map((src) => loadImage(src)));
+  }
+
+  return {
+    loadImage,
+    loadMany,
+    getImage,
+    getState,
+    onProgress
+  };
+})();
+
 const Renderer = (() => {
   let ctx = null;
   let width = 0;
@@ -149,13 +221,15 @@ const Renderer = (() => {
     // 별 이펙트 이미지 미리 로드
     for (let i = 1; i <= 12; i++) {
       const idx = i < 10 ? '0' + i : i;
-      const img = new Image();
-      img.src = `img/effects/star_fx_${idx}.png`;
-      img.onerror = function() {
-        console.warn(`Failed to load star effect image: effects/star_fx_${idx}.png`);
-      };
-      assets.starFx[i - 1] = img;
+      const src = `img/effects/star_fx_${idx}.png`;
+      void GameAssetLoader.loadImage(src).then((img) => {
+        assets.starFx[i - 1] = img;
+      });
     }
+
+    void GameAssetLoader.loadImage('img/props/star.png').then((img) => {
+      if (img) assets.star = img;
+    });
     
     // 🎭 캐릭터 애니메이션 이미지 미리 로드 (3개 캐릭터 × 3 상태 × (3 + 5 + 3) 프레임)
     const characterNames = ['character01', 'character02', 'character03'];
@@ -164,34 +238,28 @@ const Renderer = (() => {
       // idle: 3프레임
       for (let i = 1; i <= 3; i++) {
         const idx = i < 10 ? '0' + i : i;
-        const img = new Image();
-        img.src = `img/characters/${charName}/idle/idle${idx}.png`;
-        img.onerror = function() {
-          console.error(`Failed to load character image: characters/${charName}/idle/idle${idx}.png`);
-        };
-        assets.characters[charName].idle[i - 1] = img;
+        const src = `img/characters/${charName}/idle/idle${idx}.png`;
+        void GameAssetLoader.loadImage(src).then((img) => {
+          assets.characters[charName].idle[i - 1] = img;
+        });
       }
       
       // eat: 5프레임
       for (let i = 1; i <= 5; i++) {
         const idx = i < 10 ? '0' + i : i;
-        const img = new Image();
-        img.src = `img/characters/${charName}/eat/eat${idx}.png`;
-        img.onerror = function() {
-          console.error(`Failed to load character image: characters/${charName}/eat/eat${idx}.png`);
-        };
-        assets.characters[charName].eat[i - 1] = img;
+        const src = `img/characters/${charName}/eat/eat${idx}.png`;
+        void GameAssetLoader.loadImage(src).then((img) => {
+          assets.characters[charName].eat[i - 1] = img;
+        });
       }
       
       // eat_no: 3프레임
       for (let i = 1; i <= 3; i++) {
         const idx = i < 10 ? '0' + i : i;
-        const img = new Image();
-        img.src = `img/characters/${charName}/eat_no/eat_no${idx}.png`;
-        img.onerror = function() {
-          console.error(`Failed to load character image: characters/${charName}/eat_no/eat_no${idx}.png`);
-        };
-        assets.characters[charName].eat_no[i - 1] = img;
+        const src = `img/characters/${charName}/eat_no/eat_no${idx}.png`;
+        void GameAssetLoader.loadImage(src).then((img) => {
+          assets.characters[charName].eat_no[i - 1] = img;
+        });
       }
     });
     
@@ -1181,12 +1249,6 @@ const Renderer = (() => {
   }
 
   function drawStar(star, time) {
-    if (!window.myStar) {
-        window.myStar = new Image();
-        window.myStar.src = "img/props/star.png";
-        assets.star = window.myStar;
-    }
-    
     if (star.collected) return;
 
     const r = star.radius;
@@ -1256,12 +1318,10 @@ const Renderer = (() => {
       starFxLoadingStarted = true;
       for (let i = 1; i <= 12; i++) {
         const idx = i < 10 ? '0' + i : i;
-        const img = new Image();
-        img.src = `img/effects/star_fx_${idx}.png`;
-        img.onerror = function() {
-          console.warn(`Failed to load star effect image: effects/star_fx_${idx}.png`);
-        };
-        assets.starFx[i - 1] = img;
+        const src = `img/effects/star_fx_${idx}.png`;
+        void GameAssetLoader.loadImage(src).then((img) => {
+          assets.starFx[i - 1] = img;
+        });
       }
     }
 

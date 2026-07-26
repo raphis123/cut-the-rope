@@ -4,19 +4,27 @@
 (function () {
   'use strict';
 
-  const LOADING_STEPS = [
-    { pct: 18, text: 'Loading levels…' },
-    { pct: 42, text: 'Warming up physics…' },
-    { pct: 68, text: 'Feeding Om Nom…' },
-    { pct: 88, text: 'Polishing stars…' },
-    { pct: 100, text: 'Ready!' }
-  ];
+  const IDLE_FPS = 6;
+  const CHARACTER_OFFSETS = [0, 260, 520];
+  const CHARACTER_KEYS = ['character03', 'character01', 'character02'];
+  const LOADING_BG_SRC = 'img/backgrounds/title_bg01.webp';
 
   const screenLoading = document.getElementById('screen-loading');
   const screenMenu = document.getElementById('screen-menu');
   const screenLevels = document.getElementById('screen-levels');
   const screenSettings = document.getElementById('screen-settings');
   const appEl = document.getElementById('app');
+
+  const loadingStage = document.getElementById('loading-stage');
+  const loadingLogo = document.getElementById('loading-logo');
+  const loadingCandy = document.getElementById('loading-candy');
+  const loadingStar = document.getElementById('loading-star');
+  const loadingBubble = document.getElementById('loading-bubble');
+  const loadingCharacterEls = [
+    document.getElementById('loading-character-1'),
+    document.getElementById('loading-character-2'),
+    document.getElementById('loading-character-3')
+  ];
 
   const loadingFill = document.getElementById('loading-bar-fill');
   const loadingStatus = document.getElementById('loading-status');
@@ -28,6 +36,15 @@
   const levelsGrid = document.getElementById('levels-screen-grid');
 
   let loadingDone = false;
+  let loadingLaunchLocked = false;
+  let loadingAnimFrame = 0;
+  let loadingAnimStart = performance.now();
+
+  const characterFramePaths = CHARACTER_KEYS.map((key) => [
+    `img/characters/${key}/idle/idle01.png`,
+    `img/characters/${key}/idle/idle02.png`,
+    `img/characters/${key}/idle/idle03.png`
+  ]);
 
   function sfx(name) {
     if (!window.GameSettings) return;
@@ -50,6 +67,98 @@
   async function unlockAudioFromGesture() {
     if (!window.GameSettings) return false;
     return GameSettings.unlockFromGesture();
+  }
+
+  function setLoadingButtonReady(ready) {
+    btnLoadingStart.hidden = !ready;
+    btnLoadingStart.classList.toggle('is-ready', ready);
+  }
+
+  function setLoadingProgress(state) {
+    const progress = state ? state.progress : 0;
+    const loaded = state ? state.loaded : 0;
+    const total = state ? state.total : 0;
+    const pct = Math.max(0, Math.min(100, Math.round(progress * 100)));
+    loadingFill.style.width = pct + '%';
+    loadingStatus.textContent = '';
+    if (state && state.ready) {
+      loadingDone = true;
+      setLoadingButtonReady(true);
+      if (window.GameSettings) GameSettings.startMenuMusic();
+    } else {
+      loadingDone = false;
+      setLoadingButtonReady(false);
+    }
+  }
+
+  function preloadLoadingImage(img) {
+    if (!img) return;
+    const src = img.dataset.src;
+    if (!src) return;
+    void GameAssetLoader.loadImage(src).then((loadedImg) => {
+      if (loadedImg) img.src = src;
+    });
+  }
+
+  function preloadLoadingSceneAssets() {
+    void GameAssetLoader.loadImage(LOADING_BG_SRC);
+    [loadingLogo, loadingCandy, loadingStar, loadingBubble, ...loadingCharacterEls].forEach(preloadLoadingImage);
+    characterFramePaths.forEach((frames) => frames.forEach((src) => void GameAssetLoader.loadImage(src)));
+  }
+
+  function syncLoadingCharacterFrames() {
+    const now = performance.now();
+    const elapsed = now - loadingAnimStart;
+
+    loadingCharacterEls.forEach((img, index) => {
+      if (!img) return;
+      const frames = characterFramePaths[index];
+      if (!frames) return;
+      const frameIndex = Math.floor(((elapsed + CHARACTER_OFFSETS[index]) / 1000) * IDLE_FPS) % frames.length;
+      const frameSrc = frames[frameIndex];
+      if (img.dataset.frame !== frameSrc) {
+        img.dataset.frame = frameSrc;
+        img.src = frameSrc;
+      }
+    });
+  }
+
+  function startLoadingAnimation() {
+    const tick = () => {
+      syncLoadingCharacterFrames();
+      if (screenLoading.classList.contains('screen-active') && !loadingLaunchLocked) {
+        loadingAnimFrame = requestAnimationFrame(tick);
+      }
+    };
+    cancelAnimationFrame(loadingAnimFrame);
+    loadingAnimFrame = requestAnimationFrame(tick);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingAnimFrame) {
+      cancelAnimationFrame(loadingAnimFrame);
+      loadingAnimFrame = 0;
+    }
+  }
+
+  function bootstrapLoadingScene() {
+    preloadLoadingSceneAssets();
+
+    if (window.GameAssetLoader) {
+      GameAssetLoader.onProgress((state) => {
+        setLoadingProgress(state);
+      });
+      const state = GameAssetLoader.getState();
+      setLoadingProgress(state);
+    } else {
+      loadingFill.style.width = '100%';
+      loadingStatus.textContent = '';
+      loadingDone = true;
+      setLoadingButtonReady(true);
+    }
+
+    syncLoadingCharacterFrames();
+    startLoadingAnimation();
   }
 
   function showScreen(screen) {
@@ -237,39 +346,26 @@
   }
 
   async function enterMenuFromLoading() {
-    if (!loadingDone || !window.GameSettings) return;
+    if (!loadingDone || loadingLaunchLocked || !window.GameSettings) return;
+    loadingLaunchLocked = true;
     btnLoadingStart.hidden = true;
+    stopLoadingAnimation();
     GameSettings.startMenuMusic();
     await unlockAudioFromGesture();
     showMenu(false);
   }
 
-  function runLoadingSequence() {
-    let stepIndex = 0;
-
-    function nextStep() {
-      if (stepIndex >= LOADING_STEPS.length) {
-        loadingDone = true;
-        loadingStatus.textContent = 'Ready!';
-        if (window.GameSettings) GameSettings.startMenuMusic();
-        btnLoadingStart.hidden = false;
-        return;
-      }
-      const step = LOADING_STEPS[stepIndex];
-      loadingFill.style.width = step.pct + '%';
-      loadingStatus.textContent = step.text;
-      stepIndex += 1;
-      setTimeout(nextStep, 420 + Math.random() * 180);
-    }
-
-    loadingFill.style.width = '0%';
-    loadingStatus.textContent = 'Starting up…';
-    setTimeout(nextStep, 300);
+  function handleLoadingStart(event) {
+    event.preventDefault();
+    enterMenuFromLoading();
   }
 
-  btnLoadingStart.addEventListener('click', () => {
-    enterMenuFromLoading();
-  });
+  function runLoadingSequence() {
+    bootstrapLoadingScene();
+  }
+
+  btnLoadingStart.addEventListener('pointerup', handleLoadingStart);
+  btnLoadingStart.addEventListener('click', handleLoadingStart);
 
   document.getElementById('btn-menu-play').addEventListener('click', async () => {
     await unlockAudioFromGesture();
