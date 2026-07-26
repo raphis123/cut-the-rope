@@ -263,7 +263,8 @@ const Renderer = (() => {
     drawCardboardRepeatingTexture();
     drawCardboardMainGlow();
     if (!GamePerf.isVeryLowEnd) drawCardboardCoreGlow();
-    if (!GamePerf.isLowEnd) drawCardboardCupGlow();
+    // Disable only the top blue glow layer.
+    // if (!GamePerf.isLowEnd) drawCardboardCupGlow();
     drawCardboardMesh();
     drawCardboardTopFlap();
     if (!GamePerf.isLowEnd) {
@@ -273,7 +274,8 @@ const Renderer = (() => {
     }
     drawCardboardFloor();
     drawCardboardVignette();
-    if (!GamePerf.isVeryLowEnd) drawCardboardTopCup();
+    // Keep the top-cup function intact, but disable only this large blue sphere draw call.
+    // if (!GamePerf.isVeryLowEnd) drawCardboardTopCup();
   }
 
   function drawEllipticalGlow(cx, cy, rx, ry, stops) {
@@ -453,12 +455,6 @@ const Renderer = (() => {
     ctx.strokeStyle = 'rgba(68, 144, 168, 0.6)';
     ctx.lineWidth = 2;
     ctx.stroke();
-
-    ctx.globalAlpha = 0.48;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(cx - r * 0.08, cy - r * 0.06, Math.max(5, r * 0.12), 0, Math.PI * 2);
-    ctx.fill();
     ctx.restore();
   }
 

@@ -24,7 +24,7 @@
 
   background-color: var(--card-mid);
   background-image:
-    radial-gradient(ellipse 6% 5% at 50% 4.5%, rgba(126, 200, 220, 0.32) 0%, rgba(90, 173, 196, 0.14) 45%, transparent 72%),
+    radial-gradient(ellipse 6% 5% at 50% 4.5%, transparent 0%, transparent 45%, transparent 72%),
     radial-gradient(ellipse 28% 22% at 50% 32%, rgba(255, 240, 190, 0.5) 0%, rgba(255, 220, 160, 0.1) 55%, transparent 100%),
     radial-gradient(ellipse 72% 58% at 50% 36%, var(--card-glow) 0%, var(--card-glow-mid) 28%, var(--card-glow-edge) 52%, transparent 72%),
     repeating-linear-gradient(
@@ -100,6 +100,7 @@
 }
 
 .bg-orb-a {
+  display: none;
   top: 3.2%;
   left: 50%;
   transform: translateX(-50%);
@@ -116,6 +117,7 @@
 }
 
 .bg-orb-b {
+  display: none;
   top: 3.8%;
   left: 50%;
   transform: translateX(-42%);
