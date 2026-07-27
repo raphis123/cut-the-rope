@@ -1060,7 +1060,7 @@ const Renderer = (() => {
 
   function drawSoapBubble(x, y, radius, lite, time) {
     if (assets.bubble) {
-      const size = radius * 2 * 1.188;
+      const size = radius * 2 * 1.271;
       ctx.save();
       ctx.globalAlpha = 0.7;
       ctx.drawImage(assets.bubble, x - size * 0.5, y - size * 0.5, size, size);
@@ -1262,7 +1262,7 @@ const Renderer = (() => {
     if (assets.candy) {
       ctx.translate(drawX, drawY);
       ctx.rotate(angle);
-      const candySize = r * 2 * 1.458;
+      const candySize = r * 2 * 1.648;
       ctx.drawImage(assets.candy, -candySize * 0.5, -candySize * 0.5, candySize, candySize);
     } else {
       ctx.translate(drawX, drawY);

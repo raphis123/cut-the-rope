@@ -294,13 +294,26 @@
       GameSettings.vibrate(80);
     }
 
+    const earnedForDisplay = Math.max(0, Math.min(3, starsCollected));
     winStarsEl.innerHTML = '';
-    for (let i = 0; i < totalStars; i++) {
+    for (let i = 0; i < 3; i++) {
       const slot = document.createElement('span');
       slot.className = 'win-star-slot';
-      const star = document.createElement('span');
-      star.className = 'ui-sticker ui-star ui-star-md ' + (i < starsCollected ? 'star-on' : 'star-off');
-      slot.appendChild(star);
+
+      const back = document.createElement('img');
+      back.className = 'win-star-img win-star-back';
+      back.src = HUD_STAR_BACK_SRC;
+      back.alt = '';
+      back.setAttribute('aria-hidden', 'true');
+      slot.appendChild(back);
+
+      const front = document.createElement('img');
+      front.className = 'win-star-img win-star-front' + (i < earnedForDisplay ? ' is-earned' : '');
+      front.src = HUD_STAR_FRONT_SRC;
+      front.alt = '';
+      front.setAttribute('aria-hidden', 'true');
+      slot.appendChild(front);
+
       winStarsEl.appendChild(slot);
     }
 
