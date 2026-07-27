@@ -15,7 +15,7 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
   font-family: var(--font-ui, 'Fredoka', 'Comic Sans MS', cursive, sans-serif);
-  background: #7a5838;
+  background: #000;
 }
 
 #app {
@@ -86,19 +86,52 @@ html, body {
 .stars-display {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 3px;
 }
 
-.star-icon {
-  font-size: 26px;
-  color: rgba(45, 52, 54, 0.2);
-  transition: color 0.3s, transform 0.3s;
-  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.2));
+.hud-star-slot {
+  position: relative;
+  width: 43.2px;
+  height: 43.2px;
+  flex: none;
 }
 
-.star-icon.collected {
-  color: #ffd700;
-  transform: scale(1.2) rotate(-8deg);
+.hud-star-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transition: transform 0.3s, filter 0.3s, opacity 0.3s;
+}
+
+.hud-star-front {
+  opacity: 0;
+}
+
+.hud-star-front.collected {
+  opacity: 1;
+  transform: none;
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+}
+
+.hud-star-flight-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 500;
+}
+
+.hud-star-flight {
+  position: fixed;
+  pointer-events: none;
+  object-fit: contain;
+  z-index: 501;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  transform: scale(1) rotate(0deg);
+  opacity: 0.95;
 }
 
 .btn-icon {
@@ -700,7 +733,7 @@ html, body {
 
 @media (min-width: 601px) {
   body {
-    background: #7a5838;
+    background: #000;
   }
 }
 

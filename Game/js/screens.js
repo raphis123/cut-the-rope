@@ -7,7 +7,9 @@
   const IDLE_FPS = 6;
   const CHARACTER_OFFSETS = [0, 260, 520];
   const CHARACTER_KEYS = ['character03', 'character01', 'character02'];
-  const LOADING_BG_SRC = 'img/backgrounds/title_bg01.webp';
+  const LOADING_BG_SRC = 'img/backgrounds/title_bg02.webp';
+  const LEVEL_STAR_FRONT_SRC = 'img/ui/menu/level_star.png';
+  const LEVEL_STAR_BACK_SRC = 'img/ui/menu/level_star_back.png';
 
   const screenLoading = document.getElementById('screen-loading');
   const screenMenu = document.getElementById('screen-menu');
@@ -199,13 +201,30 @@
     if (levelsTotalBadge) levelsTotalBadge.textContent = String(total);
   }
 
-  function renderStarDots(container, earned, max) {
+  function renderLevelStars(container, earned, max) {
     container.innerHTML = '';
-    for (let i = 0; i < max; i++) {
-      const dot = document.createElement('span');
-      dot.className = 'lvl-star-dot' + (i < earned ? ' on' : '');
-      dot.textContent = '★';
-      container.appendChild(dot);
+    const totalSlots = Math.max(0, max || 0);
+    const visibleStars = Math.max(0, Math.min(totalSlots, earned || 0));
+
+    for (let i = 0; i < totalSlots; i++) {
+      const slot = document.createElement('span');
+      slot.className = 'lvl-star-slot';
+
+      const back = document.createElement('img');
+      back.className = 'lvl-star-img lvl-star-back';
+      back.src = LEVEL_STAR_BACK_SRC;
+      back.alt = '';
+      back.setAttribute('aria-hidden', 'true');
+      slot.appendChild(back);
+
+      const front = document.createElement('img');
+      front.className = 'lvl-star-img lvl-star-front' + (i < visibleStars ? ' is-earned' : '');
+      front.src = LEVEL_STAR_FRONT_SRC;
+      front.alt = '';
+      front.setAttribute('aria-hidden', 'true');
+      slot.appendChild(front);
+
+      container.appendChild(slot);
     }
   }
 
@@ -252,17 +271,13 @@
       num.textContent = lvl.id;
       btn.appendChild(num);
 
+      const starRow = document.createElement('span');
+      starRow.className = 'lvl-cell-stars';
+      renderLevelStars(starRow, stars, maxStars);
+      btn.appendChild(starRow);
+
       if (stars > 0) {
         btn.classList.add('completed');
-        const starRow = document.createElement('span');
-        starRow.className = 'lvl-cell-stars';
-        renderStarDots(starRow, stars, maxStars);
-        btn.appendChild(starRow);
-      } else if (lvl.id <= progress.unlocked) {
-        const starRow = document.createElement('span');
-        starRow.className = 'lvl-cell-stars';
-        renderStarDots(starRow, 0, maxStars);
-        btn.appendChild(starRow);
       }
 
       if (lvl.id > progress.unlocked) {

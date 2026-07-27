@@ -82,11 +82,24 @@ const Renderer = (() => {
   let bgCache = null;
   let bgCacheValid = false;
 
+  const INGAME_BACKGROUND_SOURCES = [
+    'img/backgrounds/ingame_bg01.webp',
+    'img/backgrounds/ingame_bg02.webp',
+    'img/backgrounds/ingame_bg03.webp',
+    'img/backgrounds/ingame_bg04.webp',
+    'img/backgrounds/ingame_bg05.webp',
+    'img/backgrounds/ingame_bg06.webp'
+  ];
+  const COMMON_CANDY_SRC = 'img/ui/common/loading_low_candy01.webp';
+  const COMMON_BUBBLE_SRC = 'img/ui/common/loading_low_bubble01.webp';
+
   const assets = {
     omNom: null,
     candy: null,
+    bubble: null,
     star: null,
     starFx: Array(12).fill(null),
+    ingameBackgrounds: {},
     characters: {
       character01: {
         idle: [],
@@ -230,6 +243,21 @@ const Renderer = (() => {
     void GameAssetLoader.loadImage('img/props/star.png').then((img) => {
       if (img) assets.star = img;
     });
+
+    void GameAssetLoader.loadImage(COMMON_CANDY_SRC).then((img) => {
+      if (img) assets.candy = img;
+    });
+
+    void GameAssetLoader.loadImage(COMMON_BUBBLE_SRC).then((img) => {
+      if (img) assets.bubble = img;
+    });
+
+    // Preload all in-game backgrounds to avoid flicker on level transitions.
+    INGAME_BACKGROUND_SOURCES.forEach((src) => {
+      void GameAssetLoader.loadImage(src).then((img) => {
+        assets.ingameBackgrounds[src] = img;
+      });
+    });
     
     // 🎭 캐릭터 애니메이션 이미지 미리 로드 (3개 캐릭터 × 3 상태 × (3 + 5 + 3) 프레임)
     const characterNames = ['character01', 'character02', 'character03'];
@@ -307,6 +335,44 @@ const Renderer = (() => {
       return;
     }
     drawCardboardBox();
+  }
+
+  function getIngameBackgroundPath(level) {
+    if (level <= 10) return 'img/backgrounds/ingame_bg01.webp';
+    if (level <= 20) return 'img/backgrounds/ingame_bg02.webp';
+    if (level <= 30) return 'img/backgrounds/ingame_bg03.webp';
+    if (level <= 40) return 'img/backgrounds/ingame_bg04.webp';
+    if (level <= 50) return 'img/backgrounds/ingame_bg05.webp';
+    return 'img/backgrounds/ingame_bg06.webp';
+  }
+
+  function drawImageCover(img) {
+    const iw = img.naturalWidth || img.width;
+    const ih = img.naturalHeight || img.height;
+    if (!iw || !ih || !width || !height) return false;
+
+    const scale = Math.max(width / iw, height / ih);
+    const drawW = iw * scale;
+    const drawH = ih * scale;
+    const dx = (width - drawW) * 0.5;
+    const dy = (height - drawH) * 0.5;
+
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+    return true;
+  }
+
+  function drawIngameBackground(world) {
+    const level = Math.max(1, (world?.levelIndex ?? 0) + 1);
+    const bgPath = getIngameBackgroundPath(level);
+    const bgImg = GameAssetLoader.getImage(bgPath) || assets.ingameBackgrounds[bgPath];
+
+    if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+      const drawn = drawImageCover(bgImg);
+      if (drawn) return;
+    }
+
+    // Fallback keeps gameplay running even if background image fails to load.
+    clear();
   }
 
   /* Palette + layer order mirror css/background.css (.screen-bg-*) */
@@ -993,6 +1059,15 @@ const Renderer = (() => {
   }
 
   function drawSoapBubble(x, y, radius, lite, time) {
+    if (assets.bubble) {
+      const size = radius * 2 * 1.188;
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(assets.bubble, x - size * 0.5, y - size * 0.5, size, size);
+      ctx.restore();
+      return;
+    }
+
     ctx.save();
     const t = time || 0;
 
@@ -1172,7 +1247,6 @@ const Renderer = (() => {
     const alpha = showEat ? 1 : (candy.loseAlpha ?? 1);
     const grey = candy.greyOut || 0;
 
-    if (!candy.collected && !candy.loseAnim) drawCandyBubble(candy, time);
     if (r < 1.5) return;
 
     ctx.save();
@@ -1188,28 +1262,29 @@ const Renderer = (() => {
     if (assets.candy) {
       ctx.translate(drawX, drawY);
       ctx.rotate(angle);
-      ctx.drawImage(assets.candy, -r, -r, r * 2, r * 2);
-      ctx.restore();
-      return;
+      const candySize = r * 2 * 1.458;
+      ctx.drawImage(assets.candy, -candySize * 0.5, -candySize * 0.5, candySize, candySize);
+    } else {
+      ctx.translate(drawX, drawY);
+      ctx.rotate(angle);
+
+      if (!candy.collected && !candy.loseAnim) {
+        ctx.save();
+        ctx.translate(0, candy.radius * 0.55);
+        ctx.scale(1, 0.26);
+        ctx.beginPath();
+        ctx.arc(0, 0, candy.radius * 0.88, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(40,20,10,0.16)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      drawJellyCandy(r, isTouchDevice(), time);
     }
-
-    ctx.translate(drawX, drawY);
-    ctx.rotate(angle);
-
-    if (!candy.collected && !candy.loseAnim) {
-      ctx.save();
-      ctx.translate(0, candy.radius * 0.55);
-      ctx.scale(1, 0.26);
-      ctx.beginPath();
-      ctx.arc(0, 0, candy.radius * 0.88, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(40,20,10,0.16)';
-      ctx.fill();
-      ctx.restore();
-    }
-
-    drawJellyCandy(r, isTouchDevice(), time);
 
     ctx.restore();
+
+    if (!candy.collected && !candy.loseAnim) drawCandyBubble(candy, time);
   }
 
   function drawCandyShatter(candy) {
@@ -1993,7 +2068,7 @@ const Renderer = (() => {
   }
 
   function drawWorld(world, cutPoints) {
-    clear();
+    drawIngameBackground(world);
 
     world.anchors.forEach(a => drawAnchor(a.x, a.y));
     (world.winds || []).forEach(w => drawWindZone(w, world.time || 0));

@@ -630,6 +630,8 @@ const Physics = (() => {
     );
     world.time = 0;
     world.effects = effects;
+    world.collectedStarsThisFrame = [];
+    world.starCollectEnabledAt = 0.35;
     world.justStartedLevel = true;
 
     settleRopes(world, GamePerf.settleSteps());
@@ -947,6 +949,7 @@ const Physics = (() => {
     const attached = isCandyAttached(world);
 
     world.time = (world.time || 0) + dt;
+    world.collectedStarsThisFrame = [];
     updateMovingObstacles(obstacles, world.time);
     updateOmNomAnim(world, dt);
 
@@ -1001,10 +1004,29 @@ const Physics = (() => {
 
     world.stars.forEach((star) => {
       star.update(dt);
-      if (!star.collected && dist(candy.x, candy.y, star.x, star.y) < candy.radius + star.radius) {
+      if (world.time < (world.starCollectEnabledAt || 0)) {
+        star.wasCandyTouching = dist(candy.x, candy.y, star.x, star.y) < candy.radius + star.radius;
+        return;
+      }
+
+      const isTouchingCandy = dist(candy.x, candy.y, star.x, star.y) < candy.radius + star.radius;
+
+      if (!isTouchingCandy) {
+        star.wasCandyTouching = false;
+        return;
+      }
+
+      if (star.wasCandyTouching || star.collected) {
+        star.wasCandyTouching = true;
+        return;
+      }
+
+      if (!star.collected) {
         star.collected = true;
+        star.wasCandyTouching = true;
         // 레벨 시작 직후 첫 프레임에는 이펙트 생성 안 함
         if (!world.justStartedLevel) {
+          world.collectedStarsThisFrame.push({ x: star.x, y: star.y, radius: star.radius });
           world.effects.push({
             type: 'star',
             x: star.x,

@@ -4,6 +4,9 @@
 (function () {
   'use strict';
 
+  const HUD_STAR_FRONT_SRC = 'img/ui/menu/level_star.png';
+  const HUD_STAR_BACK_SRC = 'img/ui/menu/level_star_back.png';
+
   const canvas = document.getElementById('game-canvas');
   const levelNumEl = document.getElementById('level-num');
   const starsDisplay = document.getElementById('stars-display');
@@ -29,11 +32,94 @@
   let loseCelebrating = false;
   let winTimeoutId = null;
   let loseTimeoutId = null;
+  let hudStarFlightLayer = null;
+  let hudDisplayedStars = 0;
+  let hudPendingStars = 0;
 
   const btnRestart = document.getElementById('btn-restart');
   const btnMenu = document.getElementById('btn-menu');
 
   Renderer.init(canvas);
+
+  function ensureHudStarFlightLayer() {
+    if (hudStarFlightLayer && document.body.contains(hudStarFlightLayer)) return hudStarFlightLayer;
+    hudStarFlightLayer = document.createElement('div');
+    hudStarFlightLayer.className = 'hud-star-flight-layer';
+    document.body.appendChild(hudStarFlightLayer);
+    return hudStarFlightLayer;
+  }
+
+  function clearHudStarFlights() {
+    if (hudStarFlightLayer) hudStarFlightLayer.innerHTML = '';
+  }
+
+  function animateCollectedStarToHUD(worldX, worldY, slotIndex, onLanded) {
+    const targetSlot = starsDisplay.querySelectorAll('.hud-star-slot')[slotIndex];
+    if (!targetSlot) {
+      if (typeof onLanded === 'function') onLanded();
+      return;
+    }
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const targetRect = targetSlot.getBoundingClientRect();
+    const startCenterX = canvasRect.left + (worldX / Renderer.width) * canvasRect.width;
+    const startCenterY = canvasRect.top + (worldY / Renderer.height) * canvasRect.height;
+    const startSize = Math.max(18, targetRect.width * 0.85);
+    const targetCenterX = targetRect.left + targetRect.width * 0.5;
+    const targetCenterY = targetRect.top + targetRect.height * 0.5;
+    const controlX = startCenterX + (targetCenterX - startCenterX) * 0.55;
+    const controlY = Math.min(startCenterY, targetCenterY) - Math.max(30, Math.abs(targetCenterY - startCenterY) * 0.18);
+
+    const flyer = document.createElement('img');
+    flyer.className = 'hud-star-flight';
+    flyer.src = HUD_STAR_FRONT_SRC;
+    flyer.alt = '';
+    flyer.setAttribute('aria-hidden', 'true');
+    flyer.style.left = startCenterX - startSize * 0.5 + 'px';
+    flyer.style.top = startCenterY - startSize * 0.5 + 'px';
+    flyer.style.width = startSize + 'px';
+    flyer.style.height = startSize + 'px';
+
+    ensureHudStarFlightLayer().appendChild(flyer);
+
+    const durationMs = 560;
+    const startAt = performance.now();
+
+    function tick(now) {
+      const rawT = Math.min(1, (now - startAt) / durationMs);
+      const easeT = 1 - Math.pow(1 - rawT, 3);
+      const invT = 1 - easeT;
+      const x = invT * invT * startCenterX + 2 * invT * easeT * controlX + easeT * easeT * targetCenterX;
+      const y = invT * invT * startCenterY + 2 * invT * easeT * controlY + easeT * easeT * targetCenterY;
+      const size = startSize + (targetRect.width - startSize) * easeT;
+      const angle = (1 - easeT) * -10;
+
+      flyer.style.left = x - size * 0.5 + 'px';
+      flyer.style.top = y - size * 0.5 + 'px';
+      flyer.style.width = size + 'px';
+      flyer.style.height = size + 'px';
+      flyer.style.transform = 'rotate(' + angle + 'deg)';
+      flyer.style.opacity = String(0.94 - easeT * 0.08);
+
+      if (rawT < 1) {
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      flyer.remove();
+      if (typeof onLanded === 'function') onLanded();
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  function revealHudStar(slotIndex) {
+    const slot = starsDisplay.querySelectorAll('.hud-star-slot')[slotIndex];
+    if (!slot) return;
+    const front = slot.querySelector('.hud-star-front');
+    if (front) front.classList.add('collected');
+    hudDisplayedStars = Math.max(hudDisplayedStars, slotIndex + 1);
+  }
 
   function getCanvasPoint(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
@@ -113,6 +199,7 @@
   function loadLevel(index) {
     if (index < 0 || index >= LEVELS.length) return;
     clearPendingOverlays();
+    clearHudStarFlights();
     currentLevel = index;
     levelNumEl.textContent = LEVELS[index].id;
 
@@ -128,6 +215,8 @@
     world.effects = [];
     cutPoints = [];
     collectedThisLevel = 0;
+    hudDisplayedStars = 0;
+    hudPendingStars = 0;
     winCelebrating = false;
     loseCelebrating = false;
     gameState = 'playing';
@@ -142,10 +231,24 @@
     const total = world ? world.stars.length : 3;
     starsDisplay.innerHTML = '';
     for (let i = 0; i < total; i++) {
-      const span = document.createElement('span');
-      span.className = 'star-icon' + (i < count ? ' collected' : '');
-      span.textContent = '★';
-      starsDisplay.appendChild(span);
+      const slot = document.createElement('span');
+      slot.className = 'hud-star-slot';
+
+      const back = document.createElement('img');
+      back.className = 'hud-star-img hud-star-back';
+      back.src = HUD_STAR_BACK_SRC;
+      back.alt = '';
+      back.setAttribute('aria-hidden', 'true');
+      slot.appendChild(back);
+
+      const front = document.createElement('img');
+      front.className = 'hud-star-img hud-star-front' + (i < count ? ' collected' : '');
+      front.src = HUD_STAR_FRONT_SRC;
+      front.alt = '';
+      front.setAttribute('aria-hidden', 'true');
+      slot.appendChild(front);
+
+      starsDisplay.appendChild(slot);
     }
   }
 
@@ -162,6 +265,7 @@
     hideAllGameOverlays();
     gameState = 'menu';
     stopGameLoop();
+    clearHudStarFlights();
     world = null;
     updateHudButtons();
     if (window.GameSettings) {
@@ -260,8 +364,27 @@
       const result = Physics.updateWorld(world, dt);
       const starCount = world.stars.filter(s => s.collected).length;
       if (starCount > collectedThisLevel) {
+        const gained = starCount - collectedThisLevel;
         collectedThisLevel = starCount;
-        updateStarsHUD(starCount);
+        const collectedNow = world.collectedStarsThisFrame || [];
+        const animatedCount = Math.min(gained, collectedNow.length);
+        const firstReservedSlot = hudDisplayedStars + hudPendingStars;
+        hudPendingStars += animatedCount;
+
+        for (let i = 0; i < animatedCount; i++) {
+          const star = collectedNow[i];
+          const slotIndex = firstReservedSlot + i;
+          animateCollectedStarToHUD(star.x, star.y, slotIndex, () => {
+            revealHudStar(slotIndex);
+            hudPendingStars = Math.max(0, hudPendingStars - 1);
+          });
+        }
+
+        // Fallback for unexpected cases where collected stars have no source point.
+        for (let i = animatedCount; i < gained; i++) {
+          revealHudStar(hudDisplayedStars + hudPendingStars);
+        }
+
         if (window.GameSettings) {
           GameSettings.play('star');
           GameSettings.vibrate(30);
@@ -412,6 +535,7 @@
     winCelebrating = false;
     loseCelebrating = false;
     stopGameLoop();
+    clearHudStarFlights();
     world = null;
     hideAllGameOverlays();
     updateHudButtons();
@@ -471,16 +595,19 @@
 
   document.getElementById('btn-next').addEventListener('click', () => {
     hideOverlay(overlayWin);
+    clearHudStarFlights();
     loadLevel(currentLevel + 1);
   });
 
   document.getElementById('btn-retry-win').addEventListener('click', () => {
     hideOverlay(overlayWin);
+    clearHudStarFlights();
     loadLevel(currentLevel);
   });
 
   document.getElementById('btn-retry-lose').addEventListener('click', () => {
     hideOverlay(overlayLose);
+    clearHudStarFlights();
     loadLevel(currentLevel);
   });
 
