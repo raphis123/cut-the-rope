@@ -423,8 +423,8 @@
         const speedN = clamp01((speed - 300) / 1900);
         const intensity = clamp01(distanceN * 0.62 + speedN * 0.38);
         const isLongSwipe = intensity > 0.5;
-        const airMasterGain = 0.042;
-        const hitMasterGain = 0.11;
+        const airMasterGain = 0.063;
+        const hitMasterGain = 0.165;
         const cutMasterGain = isHit ? hitMasterGain : airMasterGain;
         const hitGain = isHit ? 1 : 1;
         const fade = clamp01(info.fade == null ? 1 : info.fade);
@@ -440,7 +440,7 @@
           t,
           isHit ? 0.028 : 0.022,
           'triangle',
-          (isHit ? 0.07 : 0.04) * fade,
+          (isHit ? 0.105 : 0.06) * fade,
           dest,
           isHit ? lerp(680, 520, intensity) : lerp(900, 760, intensity)
         );
