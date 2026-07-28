@@ -460,7 +460,6 @@
           return;
         }
 
-        const t = now();
         const fallbackNoiseFreq = isHit ? lerp(3600, 2400, intensity) : lerp(6000, 3800, intensity);
         const fallbackDur = isHit ? lerp(0.03, 0.06, intensity) : lerp(0.018, 0.045, intensity);
         playNoise(t, fallbackDur, lerp(0.65, 1.05, intensity) * gain, dest, fallbackNoiseFreq);
