@@ -423,8 +423,8 @@
         const speedN = clamp01((speed - 300) / 1900);
         const intensity = clamp01(distanceN * 0.62 + speedN * 0.38);
         const isLongSwipe = intensity > 0.5;
-        const airMasterGain = 0.018432;
-        const hitMasterGain = 0.056;
+        const airMasterGain = 0.042;
+        const hitMasterGain = 0.11;
         const cutMasterGain = isHit ? hitMasterGain : airMasterGain;
         const hitGain = isHit ? 1 : 1;
         const fade = clamp01(info.fade == null ? 1 : info.fade);
@@ -450,7 +450,7 @@
         const t = now();
         const fallbackNoiseFreq = isHit ? lerp(3600, 2400, intensity) : lerp(6000, 3800, intensity);
         const fallbackDur = isHit ? lerp(0.03, 0.06, intensity) : lerp(0.018, 0.045, intensity);
-        playNoise(t, fallbackDur, lerp(0.045, 0.09, intensity) * gain, dest, fallbackNoiseFreq);
+        playNoise(t, fallbackDur, lerp(0.65, 1.05, intensity) * gain, dest, fallbackNoiseFreq);
       });
     },
 

@@ -426,6 +426,9 @@
   function startCut(x, y) {
     if (gameState !== 'playing') return;
     if (tryPopBubble(x, y)) return;
+    if (window.GameSettings) {
+      GameSettings.unlockAudio();
+    }
     isCutting = true;
     cutPoints = [{ x, y, ts: performance.now() }];
     cutSoundStartAt = performance.now();
