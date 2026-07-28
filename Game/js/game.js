@@ -35,6 +35,12 @@
   let hudStarFlightLayer = null;
   let hudDisplayedStars = 0;
   let hudPendingStars = 0;
+  let lastCutSoundAt = 0;
+  let cutSoundStartAt = 0;
+
+  const CUT_SOUND_INTERVAL_MS = 42;
+  const CUT_SOUND_FADE_START_MS = 100;
+  const CUT_SOUND_MAX_DURATION_MS = 300;
 
   const btnRestart = document.getElementById('btn-restart');
   const btnMenu = document.getElementById('btn-menu');
@@ -282,8 +288,9 @@
 
     const levelId = LEVELS[currentLevel].id;
     const totalStars = LEVELS[currentLevel].stars.length;
+    const earnedForDisplay = Math.max(0, Math.min(totalStars, Math.max(collectedThisLevel, starsCollected || 0)));
     const prev = progress.stars[levelId] || 0;
-    progress.stars[levelId] = Math.max(prev, starsCollected);
+    progress.stars[levelId] = Math.max(prev, earnedForDisplay);
     if (levelId >= progress.unlocked && currentLevel + 1 < LEVELS.length) {
       progress.unlocked = levelId + 1;
     }
@@ -294,9 +301,8 @@
       GameSettings.vibrate(80);
     }
 
-    const earnedForDisplay = Math.max(0, Math.min(3, starsCollected));
     winStarsEl.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < totalStars; i++) {
       const slot = document.createElement('span');
       slot.className = 'win-star-slot';
 
@@ -421,7 +427,8 @@
     if (gameState !== 'playing') return;
     if (tryPopBubble(x, y)) return;
     isCutting = true;
-    cutPoints = [{ x, y }];
+    cutPoints = [{ x, y, ts: performance.now() }];
+    cutSoundStartAt = performance.now();
   }
 
   function tryPopBubble(x, y) {
@@ -444,21 +451,61 @@
     const last = cutPoints[cutPoints.length - 1];
     const dx = x - last.x;
     const dy = y - last.y;
-    if (dx * dx + dy * dy > GamePerf.cutMoveThresholdSq()) {
-      cutPoints.push({ x, y });
+    const distSq = dx * dx + dy * dy;
+    if (distSq > GamePerf.cutMoveThresholdSq()) {
+      const segmentDistance = Math.sqrt(distSq);
+      cutPoints.push({ x, y, ts: performance.now() });
       if (cutPoints.length > 2) {
-        Physics.processCutPath(world, cutPoints.slice(-2), lastDt);
-        if (window.GameSettings) GameSettings.play('cut');
+        const didCut = Physics.processCutPath(world, cutPoints.slice(-2), lastDt);
+        if (window.GameSettings) {
+          const dt = Math.max(lastDt || 0.016, 0.008);
+          const nowMs = performance.now();
+          const cutSoundElapsed = nowMs - cutSoundStartAt;
+          const fadeT = cutSoundElapsed <= CUT_SOUND_FADE_START_MS
+            ? 0
+            : Math.min(1, (cutSoundElapsed - CUT_SOUND_FADE_START_MS) / (CUT_SOUND_MAX_DURATION_MS - CUT_SOUND_FADE_START_MS));
+          const fadeFactor = 1 - (fadeT * fadeT * (3 - 2 * fadeT));
+          if (cutSoundElapsed <= CUT_SOUND_MAX_DURATION_MS && (didCut || nowMs - lastCutSoundAt >= CUT_SOUND_INTERVAL_MS)) {
+            lastCutSoundAt = nowMs;
+            GameSettings.play('cut', {
+              distance: segmentDistance,
+              speed: segmentDistance / dt,
+              hit: didCut,
+              fade: fadeFactor
+            });
+          }
+        }
       }
     }
   }
 
   function endCut() {
     if (isCutting && cutPoints.length > 1 && world) {
-      Physics.processCutPath(world, cutPoints, lastDt);
+      const didCut = Physics.processCutPath(world, cutPoints, lastDt);
+      const cutSoundElapsed = performance.now() - cutSoundStartAt;
+      if (window.GameSettings && cutPoints.length <= 2 && cutSoundElapsed <= CUT_SOUND_MAX_DURATION_MS) {
+        let totalDistance = 0;
+        for (let i = 1; i < cutPoints.length; i++) {
+          const dx = cutPoints[i].x - cutPoints[i - 1].x;
+          const dy = cutPoints[i].y - cutPoints[i - 1].y;
+          totalDistance += Math.sqrt(dx * dx + dy * dy);
+        }
+        const strokeTime = Math.max((cutPoints.length - 1) * Math.max(lastDt || 0.016, 0.008), 0.016);
+        const fadeT = cutSoundElapsed <= CUT_SOUND_FADE_START_MS
+          ? 0
+          : Math.min(1, (cutSoundElapsed - CUT_SOUND_FADE_START_MS) / (CUT_SOUND_MAX_DURATION_MS - CUT_SOUND_FADE_START_MS));
+        const fadeFactor = 1 - (fadeT * fadeT * (3 - 2 * fadeT));
+        GameSettings.play('cut', {
+          distance: totalDistance,
+          speed: totalDistance / strokeTime,
+          hit: didCut,
+          fade: fadeFactor
+        });
+      }
     }
     isCutting = false;
     cutPoints = [];
+    cutSoundStartAt = 0;
   }
 
   canvas.addEventListener('mousedown', e => {

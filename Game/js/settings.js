@@ -49,6 +49,10 @@
   const MENU_SFX = new Set([
     'loadDone', 'menuIn', 'openLevels', 'openSettings', 'back', 'levelPick', 'locked', 'click', 'exitGame'
   ]);
+  const CUT_SFX = {
+    air: 'audio/cut-swipe-air.wav',
+    hit: 'audio/cut-swipe-hit.wav'
+  };
 
   let settings = load();
   let audioCtx = null;
@@ -60,6 +64,8 @@
   let musicContext = null;
   let fadeToken = 0;
   let musicAwaitingUnlock = false;
+  let cutSampleBuffers = { air: null, hit: null };
+  let cutSampleLoadPromise = null;
 
   function isAudioRunning() {
     return !!(audioCtx && audioCtx.state === 'running');
@@ -114,7 +120,44 @@
     } else {
       retryMusicAfterUnlock();
     }
+    void loadCutSamples();
     return ctx;
+  }
+
+  function playBuffer(buffer, dest, gain, playbackRate, stopAfterSeconds) {
+    if (!audioCtx || !dest || !buffer) return;
+    const source = audioCtx.createBufferSource();
+    const g = audioCtx.createGain();
+    source.buffer = buffer;
+    source.playbackRate.value = playbackRate || 1;
+    g.gain.value = gain;
+    source.connect(g);
+    g.connect(dest);
+    source.start();
+    const stopAfter = Math.max(0.01, stopAfterSeconds || (buffer.duration / (playbackRate || 1)));
+    source.stop(audioCtx.currentTime + stopAfter);
+    return source;
+  }
+
+  function loadCutSamples() {
+    if (cutSampleLoadPromise) return cutSampleLoadPromise;
+    if (!audioCtx) return Promise.resolve(null);
+
+    cutSampleLoadPromise = Promise.all(Object.entries(CUT_SFX).map(async ([key, src]) => {
+      const response = await fetch(src, { cache: 'force-cache' });
+      if (!response.ok) throw new Error('Failed to load ' + src);
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+      cutSampleBuffers[key] = buffer;
+    })).then(() => cutSampleBuffers).catch((error) => {
+      console.warn('Cut swipe samples failed to load:', error);
+      cutSampleBuffers = { air: null, hit: null };
+      return null;
+    }).finally(() => {
+      cutSampleLoadPromise = null;
+    });
+
+    return cutSampleLoadPromise;
   }
 
   function load() {
@@ -151,6 +194,14 @@
 
   function now() {
     return audioCtx ? audioCtx.currentTime : 0;
+  }
+
+  function clamp01(v) {
+    return Math.max(0, Math.min(1, v));
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
   }
 
   function playOsc(freq, start, dur, type, vol, dest, rampTo) {
@@ -362,12 +413,44 @@
   }
 
   const SOUNDS = {
-    cut() {
+    cut(payload) {
       playSound('cut', (dest) => {
+        const info = payload || {};
+        const distance = Math.max(0, info.distance || 0);
+        const speed = Math.max(0, info.speed || 0);
+        const isHit = !!info.hit;
+        const distanceN = clamp01((distance - 12) / 130);
+        const speedN = clamp01((speed - 300) / 1900);
+        const intensity = clamp01(distanceN * 0.62 + speedN * 0.38);
+        const isLongSwipe = intensity > 0.5;
+        const airMasterGain = 0.018432;
+        const hitMasterGain = 0.056;
+        const cutMasterGain = isHit ? hitMasterGain : airMasterGain;
+        const hitGain = isHit ? 1 : 1;
+        const fade = clamp01(info.fade == null ? 1 : info.fade);
+        const gain = cutMasterGain * hitGain * fade;
+        const kind = isHit ? 'hit' : 'air';
+        const buffer = cutSampleBuffers[kind];
+
+        if (buffer) {
+          const playbackRate = isHit
+            ? lerp(0.92, 0.8, intensity)
+            : lerp(1.02, 1.18, intensity);
+          const stopAfter = isHit
+            ? (buffer.duration * 0.25) / playbackRate
+            : buffer.duration / playbackRate;
+          playBuffer(buffer, dest, gain, playbackRate, stopAfter);
+          if (isHit && isLongSwipe) {
+            const accentBuffer = cutSampleBuffers.air || buffer;
+            playBuffer(accentBuffer, dest, airMasterGain * fade * 0.32, 1.22);
+          }
+          return;
+        }
+
         const t = now();
-        playNoise(t, 0.07, 0.12, dest, 2400);
-        playOsc(680, t, 0.05, 'square', 0.06, dest, 180);
-        playOsc(920, t + 0.02, 0.04, 'sine', 0.05, dest, 420);
+        const fallbackNoiseFreq = isHit ? lerp(3600, 2400, intensity) : lerp(6000, 3800, intensity);
+        const fallbackDur = isHit ? lerp(0.03, 0.06, intensity) : lerp(0.018, 0.045, intensity);
+        playNoise(t, fallbackDur, lerp(0.045, 0.09, intensity) * gain, dest, fallbackNoiseFreq);
       });
     },
 
@@ -527,9 +610,9 @@
     }
   };
 
-  function play(name) {
+  function play(name, payload) {
     const fn = SOUNDS[name];
-    if (fn) fn();
+    if (fn) fn(payload);
   }
 
   function syncToggleUI() {

@@ -2,6 +2,7 @@
  * Verlet rope physics with natural sag, swing, and clean rope splitting on cut.
  */
 const GamePerf = (() => {
+  const ROPE_SEGMENT_DENSITY = 1.5;
   const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const cores = navigator.hardwareConcurrency || 4;
   const mem = navigator.deviceMemory || 4;
@@ -33,10 +34,10 @@ const GamePerf = (() => {
   }
 
   function maxRopeSegments() {
-    if (isVeryLowEnd) return 14;
-    if (isLowEnd) return 17;
-    if (isTouch) return 20;
-    return 26;
+    if (isVeryLowEnd) return 21;
+    if (isLowEnd) return 26;
+    if (isTouch) return 30;
+    return 39;
   }
 
   function settleSteps() {
@@ -53,6 +54,7 @@ const GamePerf = (() => {
   }
 
   return {
+    ROPE_SEGMENT_DENSITY,
     isTouch,
     isLowEnd,
     isVeryLowEnd,
@@ -76,6 +78,9 @@ const Physics = (() => {
   const OBSTACLE_ICE_DRAG = 0.012;
   const OBSTACLE_STONE_DRAG = 0.16;
   const BUBBLE_RISE_SPEED = -46;
+  const CUT_ROPE_FADE_DELAY = 0.5;
+  const CUT_ROPE_FADE_DURATION = 0.4;
+  const CUT_FRAGMENT_SWAY_KICK = 2.8;
 
   function getRopeQuality(w, h) {
     return GamePerf.getRopeQuality(w, h);
@@ -159,6 +164,9 @@ const Physics = (() => {
       this.segmentLength = segmentLength;
       this.active = true;
       this.attachedToCandy = false;
+      this.fadeStartTime = null;
+      this.fadeDelay = CUT_ROPE_FADE_DELAY;
+      this.fadeDuration = CUT_ROPE_FADE_DURATION;
     }
 
     getSegments() {
@@ -536,8 +544,22 @@ const Physics = (() => {
     }
 
     if (lowerPoints.length >= 2) {
+      const segDx = lowerPoints[1].x - lowerPoints[0].x;
+      const dir = segDx >= 0 ? 1 : -1;
+      const lastIndex = Math.max(1, lowerPoints.length - 1);
+      lowerPoints.forEach((p, i) => {
+        if (p.pinned) return;
+        const falloff = 1 - (i / lastIndex);
+        const kick = CUT_FRAGMENT_SWAY_KICK * falloff * dir;
+        p.oldX = p.x - kick;
+        p.oldY = p.y - 0.8 * falloff;
+      });
+
       const frag = new Rope(world.nextRopeId++, lowerPoints, rope.segmentLength);
       frag.attachedToCandy = false;
+      frag.fadeStartTime = world.time || 0;
+      frag.fadeDelay = CUT_ROPE_FADE_DELAY;
+      frag.fadeDuration = CUT_ROPE_FADE_DURATION;
       world.ropes.push(frag);
       snapApart(
         upperPoints.length ? upperPoints[upperPoints.length - 1] : null,
@@ -567,9 +589,11 @@ const Physics = (() => {
     level.ropes.forEach((ropeDef) => {
       const anchor = anchors[ropeDef.anchorIndex];
       const baseSegments = ropeDef.segments || 12;
+      const minSegments = Math.round(10 * GamePerf.ROPE_SEGMENT_DENSITY);
+      const desiredSegments = Math.round(baseSegments * quality.segmentMul * GamePerf.ROPE_SEGMENT_DENSITY);
       const segments = Math.min(
         GamePerf.maxRopeSegments(),
-        Math.max(10, Math.round(baseSegments * quality.segmentMul))
+        Math.max(minSegments, desiredSegments)
       );
       const hook = getCandyHook(candy);
       const { points, segLen } = buildRopePoints(
@@ -641,6 +665,20 @@ const Physics = (() => {
     initializeStarCollisionState(world);
     
     return world;
+  }
+
+  function updateCutRopeFade(world) {
+    const now = world.time || 0;
+    world.ropes.forEach((rope) => {
+      if (!rope.active || rope.fadeStartTime === null) return;
+      const delay = rope.fadeDelay || 0;
+      const duration = rope.fadeDuration || CUT_ROPE_FADE_DURATION;
+      if (now - rope.fadeStartTime >= delay + duration) {
+        rope.active = false;
+        rope.attachedToCandy = false;
+      }
+    });
+    pruneCandyRopes(world);
   }
 
   function releaseCandyFromRopes(candy, dt) {
@@ -950,6 +988,7 @@ const Physics = (() => {
 
     world.time = (world.time || 0) + dt;
     world.collectedStarsThisFrame = [];
+    updateCutRopeFade(world);
     updateMovingObstacles(obstacles, world.time);
     updateOmNomAnim(world, dt);
 

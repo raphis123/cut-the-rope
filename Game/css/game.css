@@ -307,6 +307,11 @@ html, body {
   filter: drop-shadow(2px 3px 0 rgba(45, 52, 54, 0.14));
 }
 
+.result-lose-candy {
+  width: 114px;
+  height: 114px;
+}
+
 .result-lose {
   animation: resultLoseSway 1.5s ease-in-out infinite;
 }

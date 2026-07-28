@@ -825,12 +825,24 @@ const Renderer = (() => {
     ctx.stroke();
   }
 
-  function drawRope(rope) {
+  function drawRope(rope, time) {
     if (!rope.active) return;
     const segs = rope.getSegments();
     if (segs.length === 0) return;
 
     ctx.save();
+    if (rope.fadeStartTime !== null) {
+      const delay = rope.fadeDelay || 0;
+      const duration = rope.fadeDuration || 1;
+      const elapsed = (time || 0) - rope.fadeStartTime;
+      const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
+      const alpha = 1 - t;
+      if (alpha <= 0.01) {
+        ctx.restore();
+        return;
+      }
+      ctx.globalAlpha *= alpha;
+    }
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -2038,31 +2050,62 @@ const Renderer = (() => {
   function drawCutLine(points, alpha) {
     if (points.length < 2) return;
     ctx.save();
-    ctx.globalAlpha = alpha;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
-    }
-    ctx.strokeStyle = OUTLINE;
-    ctx.lineWidth = 6;
-    ctx.stroke();
+    const n = points.length;
+    const startWidth = 0.8;
+    const peakWidth = 13.5;
+    const tailWidth = 0.32;
+    const left = [];
+    const right = [];
 
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
+    function smoothstep(edge0, edge1, x) {
+      const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+      return t * t * (3 - 2 * t);
     }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
+
+    for (let i = 0; i < n; i++) {
+      const prev = points[Math.max(0, i - 1)];
+      const curr = points[i];
+      const next = points[Math.min(n - 1, i + 1)];
+
+      let tx = next.x - prev.x;
+      let ty = next.y - prev.y;
+      const tLen = Math.hypot(tx, ty) || 1;
+      tx /= tLen;
+      ty /= tLen;
+
+      const nx = -ty;
+      const ny = tx;
+      const t = i / Math.max(1, n - 1);
+      const rise = smoothstep(0, 0.18, t);
+      const fall = 1 - smoothstep(0.55, 1, t);
+      const body = smoothstep(0, 0.5, t) * fall;
+      const width = tailWidth + (peakWidth - tailWidth) * Math.max(rise * fall, body);
+      const localAlpha = alpha * (0.62 + Math.max(rise * fall, body) * 0.38);
+
+      left.push({ x: curr.x + nx * width * 0.5, y: curr.y + ny * width * 0.5, a: localAlpha });
+      right.push({ x: curr.x - nx * width * 0.5, y: curr.y - ny * width * 0.5, a: localAlpha });
+    }
+
     if (!isTouchDevice()) {
       ctx.shadowColor = '#FFE066';
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 6 * alpha;
     }
-    ctx.stroke();
+
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.moveTo(left[0].x, left[0].y);
+    for (let i = 1; i < left.length; i++) {
+      ctx.lineTo(left[i].x, left[i].y);
+    }
+    for (let i = right.length - 1; i >= 0; i--) {
+      ctx.lineTo(right[i].x, right[i].y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#fff';
+    ctx.fill();
 
     ctx.restore();
   }
@@ -2086,7 +2129,7 @@ const Renderer = (() => {
     drawOmNom(world.omNom, world.candy, world.time || 0, world);
     
     // 🧵 줄 (캐릭터 위에)
-    world.ropes.forEach(drawRope);
+    world.ropes.forEach((rope) => drawRope(rope, world.time || 0));
     
     // 🍬 사탕 (캐릭터와 줄보다 위에, 먹힌 사탕은 그리지 않음)
     drawCandy(world.candy, world.time || 0);
