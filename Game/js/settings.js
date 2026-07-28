@@ -431,6 +431,19 @@
         const gain = cutMasterGain * hitGain * fade;
         const kind = isHit ? 'hit' : 'air';
         const buffer = cutSampleBuffers[kind];
+        const t = now();
+
+        // Tiny deterministic chirp so the cut always produces an audible cue,
+        // even if the sample is still loading or a browser lags on decode.
+        playOsc(
+          isHit ? lerp(980, 700, intensity) : lerp(1320, 920, intensity),
+          t,
+          isHit ? 0.028 : 0.022,
+          'triangle',
+          (isHit ? 0.07 : 0.04) * fade,
+          dest,
+          isHit ? lerp(680, 520, intensity) : lerp(900, 760, intensity)
+        );
 
         if (buffer) {
           const playbackRate = isHit
